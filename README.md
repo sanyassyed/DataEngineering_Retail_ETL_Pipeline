@@ -50,7 +50,7 @@ This project demonstrates a **cloud-based Analytical Data Engineering pipeline**
 
 Dataset: **TPCDS Benchmark Dataset (Retail Sales)**
 
-![Dataset](./docs/dataset.png)
+![Dataset](./docs/dataset.jpg)
 
 * **Sales records:** From websites & catalogs.
 * **Inventory levels:** Across multiple warehouses.
