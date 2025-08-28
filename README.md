@@ -1,12 +1,46 @@
-# Analytical Data Engineering Project
+# 📊 Analytical Data Engineering Project
+
+![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws\&logoColor=white)
+![Snowflake](https://img.shields.io/badge/Snowflake-Data%20Warehouse-blue?logo=snowflake\&logoColor=white)
+![Airbyte](https://img.shields.io/badge/Airbyte-Data%20Ingestion-purple?logo=airbyte\&logoColor=white)
+![DBT](https://img.shields.io/badge/DBT-Transformation-red?logo=dbt\&logoColor=white)
+![Metabase](https://img.shields.io/badge/Metabase-BI%20Tool-teal?logo=metabase\&logoColor=white)
+
+---
+
+## 📑 Table of Contents
+
+1. [Project Overview](#-project-overview)
+2. [About the Data](#-about-the-data)
+
+   * [Data Background](#21-data-background)
+   * [Tables in the Dataset](#22-tables-in-the-dataset)
+3. [Business Requirements](#-business-requirements)
+
+   * [Snowflake Data Warehouse](#31-snowflake-data-warehouse-requirements)
+   * [Metabase Dashboards](#32-metabase-requirements)
+4. [Project Infrastructure](#-project-infrastructure)
+5. [Part One: Data Ingestion](#-part-one-data-ingestion)
+6. [Part Two: Data Transformation](#-part-two-data-transformation)
+7. [Part Three: Data Analysis](#-part-three-data-analysis)
+8. [Tech Stack](#-tech-stack)
+9. [Next Steps](#-next-steps)
+
+---
 
 ## 📌 Project Overview
 
-This project demonstrates a **cloud-based Analytical Data Engineering pipeline**. Data is ingested from multiple sources, transformed within **Snowflake**, and prepared for **business intelligence (BI)** usage. The BI tool **Metabase** connects to Snowflake to generate dashboards and reports for insights into retail sales and inventory.
+This project demonstrates a **cloud-based Analytical Data Engineering pipeline**.
 
-### 🔹 Project Diagram
+* Data ingested from **AWS RDS (Postgres)** and **AWS S3**.
+* Transformed inside **Snowflake** using **DBT**.
+* Visualized with **Metabase** for BI insights.
 
-![Project_Archictecture](./docs/AE_diagram.png)
+🔹 **Goal:** To create a scalable, production-grade analytical data pipeline for retail sales and inventory insights.
+
+📊 **High-level diagram** 
+
+![Project Architecture](./docs/AE_diagram.png)
 
 ---
 
@@ -14,30 +48,24 @@ This project demonstrates a **cloud-based Analytical Data Engineering pipeline**
 
 ### 2.1 Data Background
 
-The dataset is derived from **TPCDS**, a well-known benchmarking dataset focused on **Retail Sales**. It includes:
+Dataset: **TPCDS Benchmark Dataset (Retail Sales)**
 
-* **Sales records** from websites and catalogs.
-* **Inventory levels** for each item across warehouses.
+![Dataset](./docs/dataset.png)
 
-Data sources are divided into two parts:
+* **Sales records:** From websites & catalogs.
+* **Inventory levels:** Across multiple warehouses.
 
-* **AWS RDS (Postgres DB)**
+**Sources:**
 
-  * Contains all tables except inventory.
-  * Tables are refreshed **daily**, requiring a daily ETL pipeline.
-
-* **AWS S3 (Inventory Data)**
-
-  * Contains the **inventory.csv** file.
-  * A new file is dumped **daily** but typically records data **weekly** (end of week per item per warehouse).
+* **Postgres (AWS RDS):** All tables except inventory, refreshed daily.
+* **S3 Bucket:** Inventory CSV dumped daily, typically weekly snapshots.
 
 ### 2.2 Tables in the Dataset
 
-Schemas and table definitions can be reviewed directly in **Snowflake**.
+* Schemas available in **Snowflake**.
+* Customer-related tables integrated into a **single Customer Dimension** during ETL.
 
-* Customer-related tables are **horizontally correlated**, making them suitable for integration into a single **Customer Dimension** during ETL.
-
-*(Insert schema diagram here if available)*
+[Table Schema](https://docs.google.com/spreadsheets/d/1VilJCLyUveI68jcVrLFXxV5JjcUehj4NjvrHJRGIx5g/edit?usp=sharing)
 
 ---
 
@@ -45,102 +73,97 @@ Schemas and table definitions can be reviewed directly in **Snowflake**.
 
 ### 3.1 Snowflake Data Warehouse Requirements
 
-New tables and transformations must be created in Snowflake to enable BI analysis:
+* Integrate raw tables (e.g., customer-related) into one.
+* Create fact tables with metrics:
 
-* **Integration:** Combine raw customer-related tables into a single dimension table.
-* **Fact Table Creation:** Includes the following calculated metrics:
-
-  * `sum_qty_wk` → Total sales quantity per week.
-  * `sum_amt_wk` → Total sales amount per week.
-  * `sum_profit_wk` → Total net profit per week.
-  * `avg_qty_dy` → Average daily sales quantity (`sum_qty_wk / 7`).
-  * `inv_on_hand_qty_wk` → Item inventory at the end of each week across warehouses.
-  * `wks_sply` → Weeks of supply (`inv_on_hand_qty_wk / sum_qty_wk`).
-  * `low_stock_flg_wk` → Boolean flag for low stock conditions:
-
-    * Set to **True** if on any day `avg_qty_dy > 0` and `avg_qty_dy > inv_on_hand_qty_wk`.
+| Metric               | Description                 | Formula                                         |
+| -------------------- | --------------------------- | ----------------------------------------------- |
+| `sum_qty_wk`         | Weekly total sales quantity | `SUM(sales_quantity)`                           |
+| `sum_amt_wk`         | Weekly total sales amount   | `SUM(sales_amount)`                             |
+| `sum_profit_wk`      | Weekly net profit           | `SUM(net_profit)`                               |
+| `avg_qty_dy`         | Avg. daily sales quantity   | `sum_qty_wk / 7`                                |
+| `inv_on_hand_qty_wk` | Weekly end inventory        | Weekly closing balance                          |
+| `wks_sply`           | Weeks of supply             | `inv_on_hand_qty_wk / sum_qty_wk`               |
+| `low_stock_flg_wk`   | Stock alert                 | If `(avg_qty_dy > inv_on_hand_qty_wk)` → `True` |
 
 ### 3.2 Metabase Requirements
 
-Dashboards and reports in **Metabase** should provide:
-
-* Identification of **highest and lowest-performing items** each week (by sales amount and quantity).
-* Display of **items with low supply levels** per week.
-* Detection of **low-stock items**, showing week and warehouse, flagged as `"True"`.
+* Identify **top/bottom performers** (by sales amount/quantity).
+* Display **low-supply items per week**.
+* Detect **low-stock items**, flagging week & warehouse as `"True"`.
 
 ---
 
 ## ☁️ Project Infrastructure
 
-This project is built entirely on the **AWS Cloud**:
+This project is built entirely in the **cloud (AWS)**.
 
-* **Servers:** Multiple AWS servers provisioned.
-* **Tools:**
+* **AWS RDS (Postgres):** Raw source data.
+* **AWS S3:** Inventory CSV dumps.
+* **Airbyte:** Ingest Postgres → Snowflake.
+* **AWS Lambda:** Ingest S3 → Snowflake.
+* **DBT:** Transform raw → curated models.
+* **Snowflake:** Central data warehouse.
+* **Metabase:** BI dashboards.
 
-  * **Airbyte** → Data ingestion.
-  * **DBT** → Data transformation.
-  * **Metabase** → BI dashboards.
-* **Data Warehouse:** **Snowflake** for storage and transformations.
-* **AWS Lambda:** Serverless function for ingestion from **S3**.
 
 ---
 
 ## ⚙️ Part One: Data Ingestion
 
-### 🔹 Data Ingestion Diagram
+📌 **Flow:**
 
-*(Insert ingestion diagram here)*
+1. **Airbyte → Snowflake** (RDS schema `raw_st`).
+2. **AWS Lambda → Snowflake** (inventory.csv).
 
-* **From AWS RDS (Postgres):**
-
-  * Use **Airbyte** to extract tables from schema `raw_st` and load them into Snowflake.
-
-* **From AWS S3 (Inventory):**
-
-  * Use an **AWS Lambda** function to fetch `inventory.csv` and load it into Snowflake.
+![Dataset](./docs/ingestion.png)
 
 ---
 
 ## 🔄 Part Two: Data Transformation
 
-### 🔹 Data Transformation Diagram
+📌 **Flow:**
 
-*(Insert transformation diagram here)*
+* DBT models for integration, fact/dim creation, metrics.
+* Scheduled jobs for daily refresh.
+* Transformation lineage tracked in DBT.
 
-* Transform raw tables into business-ready models within **Snowflake**.
-* Build the **data model** using **DBT**.
-* Schedule transformations and maintain lineage with DBT.
+![Dataset](./docs/transformation.png)
 
 ---
 
 ## 📈 Part Three: Data Analysis
 
-### 🔹 Data Analysis Diagram
+📌 **Flow:**
 
-*(Insert analysis diagram here)*
+* Connect **Snowflake → Metabase**.
+* Build dashboards & reports for:
 
-* Connect **Snowflake** to **Metabase**.
-* Build dashboards and reports to fulfill business requirements.
-* Deliver insights on sales performance, inventory health, and supply chain monitoring.
+  * Weekly top/bottom sales performers.
+  * Low supply & low stock alerts.
+
+![Dataset](./docs/analysis.png)
 
 ---
 
 ## 🚀 Tech Stack
 
-* **Cloud Platform:** AWS
-* **Data Warehouse:** Snowflake
-* **Data Ingestion:** Airbyte, AWS Lambda
-* **Transformation:** DBT
-* **Visualization / BI:** Metabase
+| Component      | Tool                |
+| -------------- | ------------------- |
+| Cloud          | AWS                 |
+| Data Warehouse | Snowflake           |
+| Ingestion      | Airbyte, AWS Lambda |
+| Transformation | DBT                 |
+| Visualization  | Metabase            |
 
 ---
 
 ## 📌 Next Steps
 
-* [ ] Add ER diagrams and data models.
-* [ ] Include screenshots of Metabase dashboards.
-* [ ] Automate CI/CD for DBT and Airbyte pipelines.
+* [ ] Add **ER diagrams** & **data models**.
+* [ ] Upload **Metabase dashboard screenshots**.
+* [ ] Implement **CI/CD** for DBT & Airbyte.
+* [ ] Add **monitoring & alerting** for pipeline health.
 
 ---
 
-Would you like me to make this **README more visually engaging** with badges (e.g., Snowflake, AWS, DBT, Metabase logos) and a **table of contents**, so it looks like a polished open-source project on GitHub?
