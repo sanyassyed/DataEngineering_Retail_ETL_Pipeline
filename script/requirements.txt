@@ -1,0 +1,6 @@
+#please do not use this file for this. Follow the instructions in "how to add layer to lambda in a quick way.txt" instead.
+# pydantic less than 3 but greater than 1.10
+toml==0.10.2
+boto3==1.40.20
+snowflake-connector-python==3.17.2
+pydantic<3,>=1.10
