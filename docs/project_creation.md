@@ -1,7 +1,7 @@
 # Project Creation Steps
 Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
 
-## Part 0 : Pre-requisite
+## Part 1 : Pre-requisite
 * **Host Machine**: environment to build the lambda layer
     * conda
     * aws cli
@@ -26,7 +26,7 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     ]
     }
     ```
-## Part 1: Snowflake 
+## Part 2: Snowflake 
 * Instructions in `Week 4 - Exercise 1-Snowflake` & `Week 4 - Lecture 2 - Airbyte, Lambda & Project Data Ingestion` Notes
 * Use the warehouse - `compute_wh`
 * In the snowflake console create the following:
@@ -40,7 +40,7 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     * Make sure when writing the table schema the `inv_warehouse_sk` table has `NULL` not `NOT NULL` as the column condition & `DEFAULT 0`
     * Remember the default value only applies when inserting into table and not when copying (like we do wiht the `COPY INTO` command when copying data from stage to table)
 
-## Part 2: Lambda Function Creation
+## Part 3: Lambda Function Creation
 * Goto AWS console
 * Create the lambda function
 * Use `config.toml` to save the parameters for `snowflake`, `aws` & `s3`
@@ -107,11 +107,11 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     * Named Stage called `inventory_stage` with the `inventory.csv.gz`
     * Data loaded into the table `tpcds.raw.inventory` with `10710000` rows
 
-
 ## Codes:
 * Lambda Function [lambda_funtion](../script/lambda_function.py)
 * Config file [config.toml](../script/config.toml)
 * Requirements File [requirements.txt](../script/requirements.txt)
+* Snowflake Worksheet [Wk4_Lec2_Retail_Project worksheet]()
 
 ## Improvements
 * Create lambda function via AWS CLI rather than the AWS Console
