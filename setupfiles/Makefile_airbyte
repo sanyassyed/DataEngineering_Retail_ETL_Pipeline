@@ -1,0 +1,81 @@
+# Combined Makefile to install Docker, Docker Compose, Airbyte, and abctl
+# Includes targets to start, stop, or restart Airbyte via abctl
+
+.PHONY: all install-docker install-compose post-install install-abctl install-airbyte start-airbyte stop-airbyte restart-airbyte
+
+
+# -------------------
+# Main target: installs Docker, Compose, abctl, Airbyte, then starts Airbyte
+# -------------------
+all: install-docker install-compose post-install install-abctl install-airbyte start-airbyte
+
+# -------------------
+# Docker Installation
+# -------------------
+install-docker:
+	sudo apt update
+	sudo DEBIAN_FRONTEND=noninteractive apt -yq upgrade
+	sudo DEBIAN_FRONTEND=noninteractive apt -yq install docker.io
+	docker --version
+
+install-compose:
+	DOCKER_CONFIG=$${DOCKER_CONFIG:-$$HOME/.docker} ; \
+	mkdir -p $$DOCKER_CONFIG/cli-plugins ; \
+	curl -SL https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-linux-x86_64 \
+		-o $$DOCKER_CONFIG/cli-plugins/docker-compose ; \
+	chmod +x $$DOCKER_CONFIG/cli-plugins/docker-compose ; \
+	docker compose version
+
+post-install:
+	sudo usermod -aG docker $$USER
+	@echo "✅ Docker & Docker Compose installed."
+	@echo "⚠️ Please log out and log back in (or reboot using sudo reboot) for group changes to take effect."
+
+# -------------------
+# abctl Installation
+# -------------------
+install-abctl:
+	# Install abctl CLI if not already installed
+	if ! command -v abctl >/dev/null 2>&1; then \
+		echo "📥 Installing abctl CLI..."; \
+		curl -LsfS https://get.airbyte.com | bash -; \
+	else \
+		echo "✅ abctl CLI already installed"; \
+	fi
+
+
+# -------------------
+# Airbyte Operations using abctl
+# -------------------
+install-airbyte:
+	mkdir airbyte
+	cd airbyte
+	echo "📥 Installing Airbyte (low resource mode)..."; \
+	abctl local install --host ubuntu --low-resource-mode
+
+
+stop-airbyte:
+	echo "🛑 Stopping Airbyte..."; \
+	# docker stop airbyte-abctl-control-plane
+	abctl local uninstall
+
+start-airbyte:
+	# could get pgdata error do run this
+	# sudo chown -R ubuntu:ubuntu /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db
+	# sudo chown -R 999:999 /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata
+	# sudo chmod -R 700 /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata
+	# sudo chown -R 1000:1000 /home/ubuntu/.airbyte/abctl/data/airbyte-local-pv
+	abctl local install --host ubuntu --low-resource-mode
+
+uninstall-airbyte:
+	abctl local uninstall --persisted # if you want to remove volumes as well
+
+# make install-docker       # Install Docker
+# make install-compose      # Install Docker Compose
+# make post-install         # Add user to Docker group
+# make install-abctl        # Install abctl CLI
+# make install-airbyte      # install airbyt the first time via abctl
+# make start-airbyte        # Start Airbyte via abctl
+# make stop-airbyte         # Stop Airbyte
+# make restart-airbyte      # Restart Airbyte
+# make                     # Do everything at once

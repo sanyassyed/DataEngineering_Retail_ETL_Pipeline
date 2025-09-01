@@ -1,10 +1,70 @@
 # Project Creation Steps
 Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
 
-## Part 1 : Pre-requisite
+## Tools & Setup Required
+* `S3` 
+    * USE: to get `inventory.csv` from the WeCloudData Bucket
+* `Snowflake Console` 
+    * CREATE
+        * an account
+        * Raw Database & Staging
+        * Production Database
+    * USE: To load data 
+* `snowsql` - Snowflake CLI on `host EC2 instance (zara_de)`
+    * INSTALLATION: Install via [Makefile](../../Makefile) in home directory of the `host EC2 instance (zara_de)` or Instructions in `Week 4 Lecture 1 Notes/Video`
+    * USE: To manage snowflake from host machine via CLI
+* `AWS Lambda`
+    * USE: To pull data from S3 and load into snowflake on a schedule
+* EC2 Instance with `dbt` [Note: we are using `host EC2 instance (zara_de)`]
+    * INSTALLATION: Install `dbt-pg` via [Makefile](../setupfiles/Makefile_zara_de) in the home folder or Install via instructions in `Week 1 Lab EC2 and Linux`
+    * USE: To transform the data in Snowflake
+* Host EC2 (zara_de) with `psql` - 
+    * INSTALLATION: Install via [Makefile](../setupfiles/Makefile_zara_de) in the home folder or Instructions in `Week 1 Lab EC2 and Linux`
+    * USE: The psql will be used to connect to Postgres database if necessary.
+* Host EC2 (zara_de) with `aws-cli` - 
+    * INSTALLATION: Install via [Makefile](../setupfiles/Makefile_zara_de) in the home folder
+    * USE:
+        * The aws-cli will help us connect to aws via command line.
+        * Eg: Create & Upload lambda layer
+* `RDS Postgres`
+    * USE: To pull another dataset provided by WeCloudData
+* EC2 Instance with `Airbyte`
+    * CREATE: 
+        * Create t2.xlarge instance with 32GB Memory called `Airbyte` via instructions in `Week 1 Lab EC2 and Linux`
+        * SSH port 22
+        * TCP port 8000
+        * `ssh Airbyte -L 8000:localhost:8000`
+    * INSTALL: 
+        * make
+        ```bash
+        sudo apt update
+        sudo apt install make
+        ```
+        * `docker` & `docker-compose` via 
+            * [Makefile](../setupfiles/Makefile_airbyte) `make install-docker`, `make install-compose` & `make post-install`
+            * Follow instructions in `Week 2 Lab Install Airbyte and Metabase with Docker`
+        * `Airbyte` via abctl
+            * [Makefile](../setupfiles/Makefile_airbyte) `make install-abctl`, `make start-airbyte`, `make stop-airbyte` & `make restart-airbyte`
+            * Get Login details using the command `abctl local credentials` ( first time user set username: s*****een@gmail.com organization:airbyte)
+    * USE: To pull data from RDS into snowflake
+* EC2 Instance with `Metabase`
+    * CREATE: Create t2.small instance `Metabase` via instructions in `Week 1 Lab EC2 and Linux`
+    * INSTALL: 
+        * `docker` & `docker-compose` via 
+            * Makefile (copy the applicable code & create a Makefile in the Airbyte instance) or
+            * Follow instructions in `Week 2 Lab Install Airbyte and Metabase with Docker`
+        * `Metabase` via docker
+    * USE: To visualize the data pulled from snowflake
+
+---
+
+## Part 1 : s3 -> Lambda -> Snowflake
+
+### Step 1 : Pre-requisite
 * **Host Machine**: environment to build the lambda layer
     * conda
     * aws cli
+    * snowsql
 * **AWS Console**:
     * User eg: `guest` with the following custom policy eg:`S3ReadWriteExternal` to let the user read from and write to external account s3 buckets
     * Create the access key for the user and save the user key and secret to use in the lambda function later to be able to access the external s3 bucket witht the data i.e `inventory.csv`
@@ -26,7 +86,7 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     ]
     }
     ```
-## Part 2: Snowflake 
+### Step 2: Snowflake 
 * Instructions in `Week 4 - Exercise 1-Snowflake` & `Week 4 - Lecture 2 - Airbyte, Lambda & Project Data Ingestion` Notes
 * Use the warehouse - `compute_wh`
 * In the snowflake console create the following:
@@ -40,7 +100,7 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     * Make sure when writing the table schema the `inv_warehouse_sk` table has `NULL` not `NOT NULL` as the column condition & `DEFAULT 0`
     * Remember the default value only applies when inserting into table and not when copying (like we do wiht the `COPY INTO` command when copying data from stage to table)
 
-## Part 3: Lambda Function Creation
+### Step 3: Lambda Function Creation
 * Goto AWS console
 * Create the lambda function
 * Use `config.toml` to save the parameters for `snowflake`, `aws` & `s3`
@@ -107,11 +167,79 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     * Named Stage called `inventory_stage` with the `inventory.csv.gz`
     * Data loaded into the table `tpcds.raw.inventory` with `10710000` rows
 
-## Codes:
+### Step 4 : Scheduling using EventBridge Trigger
+* We are going to set `EventBridge` in the Lambda function to make it run on every night 2 am EST (6 AM UTC).
+* Select the trigger button
+* From the drop down box select `EventBridge (CloudWatch Events)`
+* Create a new rule named `trigger-2am-EST`
+* Schedule expression write the following CRON schedule `cron(0 6 * * ? *)`
+* Add
+* **Now the lambda function is able to pull data from the s3 bucket and load it into snowflake every day at 2 am EST**
+
+### Codes:
 * Lambda Function [lambda_funtion](../script/lambda_function.py)
 * Config file [config.toml](../script/config.toml)
 * Requirements File [requirements.txt](../script/requirements.txt)
 * Snowflake Worksheet [Wk4_Lec2_Retail_Project worksheet]()
+
+---
+
+## Part 2: RDS Postgres -> Airbyte -> Snowflake
+### Tools
+* Host EC2 instance (zara_de)
+* Airbyte in `Airbyte` EC2 t2.xlarge instance with 16GB memory
+
+### Step 1: Setup & Start Airbyte
+* Start Airbyte using the command `abctl local start`
+* Follow the steps in the `Wk 4 [Workshop] Airbyte`
+* Create Source - Postgres
+* Create Destination - Snowflake
+* Create Connection
+* Sync Now - The data is now loaded from source to destination and this load happens every day at 2 am
+* NOTE: 
+    * For `Security` `SSL Modes` select `allow`
+    * In connections for cron give `0 0 6 * * ?`
+* ERRORS:
+    * `502 ERROR`: If you get `502` error follow the below steps [resource](https://github.com/airbytehq/airbyte/issues/65567)
+    ```bash
+    # Had to also set the token by hand like this - this is in parts lifted from the slack channel
+
+    docker ps
+
+    # Find your container id
+
+    docker exec -it <containerID> bash
+
+    # Now inside the container do this
+
+    # Check current status
+    kubectl -n airbyte-abctl get pods
+
+    # Generate and apply matching auth tokens to both services
+    BEARER_TOKEN=$(openssl rand -hex 16)
+    echo "Generated token: $BEARER_TOKEN"
+
+    kubectl -n airbyte-abctl set env deployment/airbyte-abctl-worker \
+    WORKLOAD_API_BEARER_TOKEN="$BEARER_TOKEN" \
+    INTERNAL_API_AUTH_TOKEN="$BEARER_TOKEN"
+
+    kubectl -n airbyte-abctl set env deployment/airbyte-abctl-workload-api-server \
+    WORKLOAD_API_BEARER_TOKEN="$BEARER_TOKEN"
+
+    # Restart both services
+    kubectl -n airbyte-abctl rollout restart deployment airbyte-abctl-worker
+    kubectl -n airbyte-abctl rollout restart deployment airbyte-abctl-workload-api-server
+
+    # Wait for rollouts to complete
+    kubectl -n airbyte-abctl rollout status deployment airbyte-abctl-worker
+    kubectl -n airbyte-abctl rollout status deployment airbyte-abctl-workload-api-server
+    ```
+    * `PG DATA ERROR`: If you get `ERROR failed to determine if any previous psql version exists: error reading pgdata version file: open /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata/PG_VERSION: permission denied` error run the following command on the Airbyte instance 
+        * `sudo chown -R ubuntu:ubuntu /home/ubuntu/.airbyte`
+        * Check if the owner of the following directories is ubuntu `ls -ld /home/ubuntu/.airbyte` and `ls -ld /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata`
+    * AIRBYTE CONNECTION ERROR - Primary Key Missing - Select `SYNC Mode` as `Full Refresh | Overwrite`
+
+---
 
 ## Improvements
 * Create lambda function via AWS CLI rather than the AWS Console

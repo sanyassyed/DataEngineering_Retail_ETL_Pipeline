@@ -1,0 +1,66 @@
+create-virtual-env:
+	sudo apt-get update -y
+	sudo apt-get upgrade -y
+	conda create -y --prefix ./.venv python=3.12.9 pip
+	conda init
+
+install-dbt-pg:
+	sudo apt update -y
+	sudo apt upgrade -y
+	sudo apt install -y python3-pip libpq-dev
+	pip install --user dbt-postgres
+
+
+install-psql:
+	@echo "Updating package index..."
+	sudo apt update -y
+	@echo "Installing PostgreSQL client..."
+	sudo apt install -y postgresql-client
+	@echo "Verifying installation..."
+	psql --version
+
+install-aws-cli:
+	sudo apt update -y
+	sudo apt install -y unzip curl
+	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+	unzip awscliv2.zip
+	sudo ./aws/install
+	aws --version
+	@echo "Configuring AWS...Enter the Access Key ID, Secret & Region"
+	aws configure
+
+install-snowflake:
+	curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.4/linux_x86_64/snowsql-1.4.4-linux_x86_64.bash
+	hmod +x snowsql-1.4.4-linux_x86_64.bash
+	# -p to set path for directory and -y for auto accept other commands
+	bash ./snowsql-1.4.4-linux_x86_64.bash -y -p ~/bin
+	# If path is not already appended then append
+	@grep -qxF 'export PATH="$$HOME/bin:$$PATH"' ~/.bashrc || echo 'export PATH="$$HOME/bin:$$PATH"' >> ~/.bashrc
+	@echo "Run 'source ~/.bashrc' or restart shell to update PATH. And then check snowsql -v"
+
+install-spark:
+	wget https://dlcdn.apache.org/spark/spark-3.3.2/spark-3.3.2-bin-hadoop3.tgz -P ~/spark
+	tar xzfv ~/spark/spark-3.3.2-bin-hadoop3.tgz -C ~/spark/
+	rm ~/spark/spark-3.3.2-bin-hadoop3.tgz
+	echo 'export SPARK_HOME="${HOME}/spark/spark-3.3.2-bin-hadoop3"' >> ~/.bashrc
+	echo 'export PATH="${SPARK_HOME}/bin:${PATH}"' >> ~/.bashrc
+
+install-sw: install-miniconda install-java install-spark
+
+# Create virtual env
+# make create-virtual-env
+# conda activate .venv
+
+# Install dbt in the ec2 instance globally
+# make install-dbt-pg
+
+# Install psql
+# make install-psql
+
+# Install AWS-CLI
+# make install-aws-cli
+
+# Install Snowflake
+# make install-snowflake
+
+
