@@ -60,11 +60,6 @@ stop-airbyte:
 	abctl local uninstall
 
 start-airbyte:
-	# could get pgdata error do run this
-	# sudo chown -R ubuntu:ubuntu /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db
-	# sudo chown -R 999:999 /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata
-	# sudo chmod -R 700 /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata
-	# sudo chown -R 1000:1000 /home/ubuntu/.airbyte/abctl/data/airbyte-local-pv
 	abctl local install --host ubuntu --low-resource-mode
 
 uninstall-airbyte:

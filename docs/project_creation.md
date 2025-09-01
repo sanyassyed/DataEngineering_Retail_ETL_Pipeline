@@ -234,10 +234,19 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     kubectl -n airbyte-abctl rollout status deployment airbyte-abctl-worker
     kubectl -n airbyte-abctl rollout status deployment airbyte-abctl-workload-api-server
     ```
-    * `PG DATA ERROR`: If you get `ERROR failed to determine if any previous psql version exists: error reading pgdata version file: open /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata/PG_VERSION: permission denied` error run the following command on the Airbyte instance 
-        * `sudo chown -R ubuntu:ubuntu /home/ubuntu/.airbyte`
-        * Check if the owner of the following directories is ubuntu `ls -ld /home/ubuntu/.airbyte` and `ls -ld /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata`
-    * AIRBYTE CONNECTION ERROR - Primary Key Missing - Select `SYNC Mode` as `Full Refresh | Overwrite`
+
+    * `Airbyte - ABCTL Error`: 
+        * abctl install works well
+        * `abctl local install --host ubuntu --low-resource-mode` installation of airbyte works fine the first time but when restarting (we use the same command) gives the following permission errors:
+            * `PG DATA ERROR`: If you get `ERROR failed to determine if any previous psql version exists: error reading pgdata version file: open /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata/PG_VERSION: permission denied` error run the following command on the Airbyte instance. 
+                * `SOLUTION` (does not always work): 
+                * `sudo chown -R ubuntu:ubuntu /home/ubuntu/.airbyte`
+                * Check if the owner of the following directories is ubuntu `ls -ld /home/ubuntu/.airbyte` and `ls -ld /home/ubuntu/.airbyte/abctl/data/airbyte-volume-db/pgdata` 
+            * `MinIO ERROR`: `ERROR failed to determine if minio physical volume dir exists: stat /home/ubuntu/.airbyte/abctl/data/airbyte-minio-pv: permission denied`
+                * `sudo chown -R 999:999 /home/ubuntu/.airbyte/abctl/data` & `sudo chmod -R 755 /home/ubuntu/.airbyte/abctl/data`
+        * The only work around is remove the volume as well as they are errors due to the access to the volume directory `abctl local uninstall --persisted`
+    * AIRBYTE CONNECTION NOTES ERROR - Primary Key Missing - Select `SYNC Mode` as `Full Refresh | Overwrite`
+
 
 ---
 
