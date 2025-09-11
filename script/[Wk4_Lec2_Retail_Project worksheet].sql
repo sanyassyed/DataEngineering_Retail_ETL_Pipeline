@@ -17,6 +17,9 @@ CREATE OR REPLACE DATABASE TPCDS;
 
 CREATE OR REPLACE SCHEMA RAW;
 
+USE DATABASE TPCDS;
+USE SCHEMA RAW;
+
 -- Create Table
 CREATE OR REPLACE TABLE tpcds.raw.inventory
 (inv_date_sk INTEGER NOT NULL,
@@ -39,7 +42,7 @@ FROM tpcds.raw.inventory
 WHERE inv_date_sk = 2452451 AND inv_item_sk = 17683
 LIMIT 100;
 
-SELECT *
+SELECT COUNT(*)
 FROM tpcds.raw.inventory
 WHERE inv_warehouse_sk IS NULL;
 
@@ -49,3 +52,12 @@ REMOVE @inventory_stage;
 SHOW STAGES;
 DROP STAGE inventory_stage;
 SHOW STAGES;
+
+-- TESTING
+USE tpcds.raw;
+SHOW TABLES;
+SELECT COUNT(*) FROM tpcds.raw.catalog_sales;
+SELECT COUNT(*) FROM tpcds.raw.call_center;
+
+SHOW STAGES;
+LIST @~;

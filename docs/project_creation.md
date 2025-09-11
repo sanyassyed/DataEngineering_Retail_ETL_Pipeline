@@ -64,6 +64,12 @@ This file contains the steps followed to create this project
 ---
 
 ## Part 1 : s3 -> Lambda -> Snowflake
+In this step we are trying to do the following everyday at 2 am via Lambda functions `EventBridge` Trigger
+1. Pulls the `inventory.csv` file from WCD's S3 bucket via `REQUEST PAYER` accessed via user secret and key and writes is locally to the `/tmp` folder
+1. Lambda then creates `comma_csv` file format & a named stage called `INVENTORY_STAGE`
+1. Puts the .csv file from the `/tmp` to the `INVENTORY_STAGE` named stage
+1. Truncates the inventory table
+1. Copies the `inventory_stage/inventory.csv.gz` from the `INVENTORY_STAGE` named stage into the `inventory` table
 
 ### Step 1 : Pre-requisite
 * **Host Machine**: environment to build the lambda layer
@@ -191,6 +197,11 @@ This file contains the steps followed to create this project
 ---
 
 ## Part 2: RDS Postgres -> Airbyte -> Snowflake
+In this step we are trying to do the following everyday at 2 am via Airbyte
+1. Pulls the 18 tables from RDS(Postgres) 
+1. Loads the tables into the staging/landing schema `airbyte_internal` 
+1. Loads the tables from the `airbyte_internal` schema into the `raw` schema via `CREATE TABLE` & `INSERT INTO`
+
 ### Tools
 * Host EC2 instance (zara_de)
 * Airbyte in `Airbyte` EC2 t2.xlarge instance with 20GB memory
@@ -253,8 +264,40 @@ This file contains the steps followed to create this project
         * The only work around is remove the volume as well as they are errors due to the access to the volume directory `abctl local uninstall --persisted`
     * AIRBYTE CONNECTION NOTES ERROR - Primary Key Missing - Select `SYNC Mode` as `Full Refresh | Overwrite`
 
-
 ---
+
+## Datawarehouse contents after the above steps
+* Database : TPCDS
+* SCHEMA
+    * RAW
+        * Tables:
+            * INVENTORY - loaded from WCD's s3 bucket via Lambda Function everyday via `EventBridge Trigger` by creating an `INVENTORY_STAGE` named stage & `COMMA_CSV` file format in the raw shema and putting the file in the named stage and then copying into the table, 
+            * CALL_CENTER - loaded via Airbyte CRON job everyday into the `airbyte_internal` schema as a landing schema and then copying the tables into the `RAW` schema 
+            * CATALOG_PAGE
+            * CATALOG_SALES
+            * CUSTOMER
+            * CUSTOMER_ADDRESS
+            * CUSTOMER_DEMOGRAPHIC
+            * DATE_DIM
+            * HOUSEHOLD_DEMOGRAPHIC
+            * INCOME_BAND
+            * INVENTORY
+            * ITEM
+            * PROMOTION
+            * SHIP_MODE
+            * TIME_DIM
+            * WAREHOUSE
+            * WEB_PAGE
+            * WEB_SALES
+            * WEB_SITE
+        * Stages
+            * INVENTORY_STAGE
+        * File Formats
+            * COMMA_CSV
+    * AIRBYTE_INTERNAL
+        * Tables
+            * 18 Tables
+* We now have 18 + 1 Tables in the DW in the RAW Schema
 
 ## Improvements
 * Create lambda function via AWS CLI rather than the AWS Console
