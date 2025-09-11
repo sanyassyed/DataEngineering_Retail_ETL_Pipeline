@@ -61,3 +61,9 @@ SELECT COUNT(*) FROM tpcds.raw.call_center;
 
 SHOW STAGES;
 LIST @~;
+
+-- Viewing file formats
+USE DATABASE TPCDS;
+USE SCHEMA RAW;
+SHOW FILE FORMATS;
+DESCRIBE FILE FORMAT tpcds.raw.comma_csv;
