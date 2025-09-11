@@ -1,5 +1,10 @@
 # Project Creation Steps
-Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
+This file contains the steps followed to create this project
+
+* **Project Host Machine**: Zara_de EC2 instance
+* **Lecture Source** : Refer to the notes are from 
+    * Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion [here](https://github.com/sanyassyed/De_Coursework_WCD/blob/master/docs/1AnalyticsEngineering.md)
+    * Week 7 Lecture 1 -
 
 ## Tools & Setup Required
 * `S3` 
@@ -88,6 +93,7 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     ```
 ### Step 2: Snowflake 
 * Instructions in `Week 4 - Exercise 1-Snowflake` & `Week 4 - Lecture 2 - Airbyte, Lambda & Project Data Ingestion` Notes
+* NOTE: - Snowflake is case sensitive if string is within quotes. For example these two are different schemas `TPCDS."raw"` and `TPCDS.RAW`
 * Use the warehouse - `compute_wh`
 * In the snowflake console create the following:
     * Code can be viewed in the following worksheet on snowflake [Wk4_Lec2_Retail_Project worksheet](https://app.snowflake.com/ardimvt/jo76007/w45glwo1zhJK#query)
@@ -96,14 +102,14 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     * new user - `wcd_midterm_load_user` (give password too)
     * grant role- `accountadmin`
     * table - `inventory`
-* Changes from the lecture:
-    * Make sure when writing the table schema the `inv_warehouse_sk` table has `NULL` not `NOT NULL` as the column condition & `DEFAULT 0`
-    * Remember the default value only applies when inserting into table and not when copying (like we do wiht the `COPY INTO` command when copying data from stage to table)
+    * NOTE: Changes from the lecture:
+        * Make sure when writing the `inventory` table schema the `inv_warehouse_sk` column has `NULL` not `NOT NULL` as the column condition & `DEFAULT 0`
+        * Remember the default value only applies when inserting into table and not when copying (like we do with the `COPY INTO` command when copying data from stage to table)
 
 ### Step 3: Lambda Function Creation
 * Goto AWS console
-* Create the lambda function
-* Use `config.toml` to save the parameters for `snowflake`, `aws` & `s3`
+* Create the lambda function `wcd-de-b8-snowflake-project` (Code for the same can be found [here](../script/lambda_function.py))
+* Use `config.toml` to save the parameters for `snowflake`, `aws` & `s3` found [here](../script/config.toml)
 * Use the `guest` user key & secret to access the s3 bucket via `REQUEST PAYER`
 * Write the code to do the following
     * pull data file from url using requests
@@ -114,7 +120,7 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
     * list stage
     * copy data from stage to table
 * Deploy and test the lambda functions to know which packages are missing in lambda that you need to add to the layer
-* Add the required packagest to be added to the lambda layer along with the versions to the `requirements.txt` file on the host machine
+* Add the required packagest to be added to the lambda layer along with the versions to the [requirements.txt](../script/requirements.txt) file on the host machine
 * Create layer (to zip packages required by lambda)
     * Use an EC2 instance or cloud console to do that using the following code
     ```bash
@@ -172,26 +178,26 @@ Notes are from Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion
 * Select the trigger button
 * From the drop down box select `EventBridge (CloudWatch Events)`
 * Create a new rule named `trigger-2am-EST`
-* Schedule expression write the following CRON schedule `cron(0 6 * * ? *)`
-* Add
+* For `Schedule expression` write the following CRON schedule `cron(0 6 * * ? *)`
+* `Add` Button
 * **Now the lambda function is able to pull data from the s3 bucket and load it into snowflake every day at 2 am EST**
 
 ### Codes:
 * Lambda Function [lambda_funtion](../script/lambda_function.py)
 * Config file [config.toml](../script/config.toml)
 * Requirements File [requirements.txt](../script/requirements.txt)
-* Snowflake Worksheet [Wk4_Lec2_Retail_Project worksheet]()
+* Snowflake Worksheet [Wk4_Lec2_Retail_Project worksheet]
 
 ---
 
 ## Part 2: RDS Postgres -> Airbyte -> Snowflake
 ### Tools
 * Host EC2 instance (zara_de)
-* Airbyte in `Airbyte` EC2 t2.xlarge instance with 16GB memory
+* Airbyte in `Airbyte` EC2 t2.xlarge instance with 20GB memory
 
 ### Step 1: Setup & Start Airbyte
 * Start Airbyte using the command `abctl local start`
-* Follow the steps in the `Wk 4 [Workshop] Airbyte`
+* Follow the steps in the [Wk 4 [Workshop] Airbyte](https://learn.weclouddata.com/programs/2/courses/159d75b6-f529-492e-9c48-8d16f33a8183/weeks/2500/materials/19647?topic_id=6566)
 * Create Source - Postgres
 * Create Destination - Snowflake
 * Create Connection
