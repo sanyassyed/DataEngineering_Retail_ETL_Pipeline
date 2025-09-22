@@ -300,20 +300,10 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 * We now have 18 + 1 Tables in the DW in the RAW Schema
 
 ---
-## Part 3: EDA on Snowflake
+## Part 3: EDA and Data Modelling in Snowflake
 * We have ingested data from RDS and S3 bucket to Snowflake RAW schema
+* In this part we look at the data in detail by understanding the data background, tables in the data and then model the data using the Kimball Data Modelling methodology
 
- 
-## Improvements
-* Create lambda function via AWS CLI rather than the AWS Console
-* Explore the dataset from the following aspects: 
-    * SQL commands to do the following can be found here [Midterm_Retail_Project/2_eda](../script/snowflake/2_eda.sql)
-    * The earliest and latest date of the sales and inventory (you need to join date_dim to see the exact date instead of date id)
-    * Row numbers of each table
-    * Pick one item to know how frequently it is ordered by customers and how frequently it is recorded in the inventory
-    * How many individual items
-    * How many individual customers
-    * etc.
 ### Data Background
 * Find info about eda instructions and data background [here](./eda_and_data_description.pdf)
 * Backgroud : Retail sales
@@ -326,7 +316,46 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
         * S3 Bucket: The single Inventory table is stored in an S3 bucket, every day there will be a new file containing the newest data dump into the S3 bucket. BUT, be aware that the inventory table usually only records the inventory data at the end of each week, so usually each week you can only see one entry for each item each warehouse (Please go to your RAW schema in Snowflake to explore the data). But you also need to ingest the inventory file from the S3 bucket every day.
 * Tables:
     * View the raw data schema [here](./Tables.xlsx) In this sheet, you can see there are several tables correlated to the customer; these tables' schema is arranged horizontally. This means when you are doing ETL consider putting integrate all these tables into one customer dimension table.
-    * 
+
+### EDA
+* Explore the dataset from the following aspects: 
+    * SQL commands to do the following can be found here [Midterm_Retail_Project/2_eda](../script/snowflake/2_eda.sql)
+    * The earliest and latest date of the sales and inventory (you need to join date_dim to see the exact date instead of date id)
+    * Row numbers of each table
+    * Pick one item to know how frequently it is ordered by customers and how frequently it is recorded in the inventory
+    * How many individual items
+    * How many individual customers
+    * etc.
+
+### Data Modelling 
+* Conceptual Model
+    * Identify the business process - done [here](./Tables.xlsx) `DB_schema` sheet
+    * Identify the grain
+* Logical Model
+    * Star Schema - done [here](./Tables.xlsx) `DW_datamodel` sheet
+    * Choose the dimensions - dim_calendar, dim_product, dim_store
+    * Choose the measures - fact_daily_sales, fact_weekly_sales
+* Physical Model
+    * Load data from OLTP source into `LAND` 
+        * Create tables in the `LAND` schema [script](./scripts/1_load_into_landing.sql)
+        * Load data into each table from [here](./docs/) by left clicking on the table in DBeaver and selecting `Import Data` option
+    * DDL [script](./scripts/2_ddl.sql) to **CREATE** the following tables
+        * dim_calendar
+        * dim_store
+        * dim_product
+        * fact_daily_sales
+        * fact_weekly_sales
+    * DML [script](./scripts/3_dml.sql) to **LOAD** the following tables ising the **Incremental Load** DATA LOADING Methodology
+        * dim_calendar 
+            * `Initial Load` - INSERT - Type 0 SCD
+        * dim_store - Type 2
+            * `Initial Load` & `Delta Load` - Same script for INSERT & UPDATE - Type 2 SCD
+        * dim_product - Type 2
+            * `Initial Load` & `Delta Load` - Same script for INSERT & UPDATE - Type 2 SCD
+
+## Improvements
+* Create lambda function via AWS CLI rather than the AWS Console
+
 ## Resources:
 * Course Github for project [here](https://github.com/WCD-DE/AE_Project_Student/tree/main/project_lambda_function)
 
