@@ -2,9 +2,9 @@
 This file contains the steps followed to create this project
 
 * **Project Host Machine**: Zara_de EC2 instance
-* **Lecture Source** : Refer to the notes are from 
-    * Week 4 Lecture 2 - Airbyte, Lambda & Project Data Ingestion [here](https://github.com/sanyassyed/De_Coursework_WCD/blob/master/docs/1AnalyticsEngineering.md)
-    * Week 7 Lecture 1 -
+* **Lecture Source** : Refer to the notes from [here](https://github.com/sanyassyed/De_Coursework_WCD/blob/master/docs/1AnalyticsEngineering.md)
+    * **Part 1 & 2** - Airbyte, Lambda & Project Data Ingestion - Week 4 Lecture 2
+    * **Part 3** - EDA on Snowflake - Week 7 Lecture 1 
 
 ## Tools & Setup Required
 * `S3` 
@@ -102,7 +102,7 @@ In this step we are trying to do the following everyday at 2 am via Lambda funct
 * NOTE: - Snowflake is case sensitive if string is within quotes. For example these two are different schemas `TPCDS."raw"` and `TPCDS.RAW`
 * Use the warehouse - `compute_wh`
 * In the snowflake console create the following:
-    * Code can be viewed in the following worksheet on snowflake [Midter_Retail_Project/1_setup](../script/snowflake/1_setup.sql)
+    * Code can be viewed in the following worksheet on snowflake [Midterm_Retail_Project/1_setup](../script/snowflake/1_setup.sql)
     * Database - `tpcds`
     * Schema - `raw`
     * New User - `wcd_midterm_load_user` (give password too)
@@ -299,10 +299,34 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
             * 18 Tables
 * We now have 18 + 1 Tables in the DW in the RAW Schema
 
+---
+## Part 3: EDA on Snowflake
+* We have ingested data from RDS and S3 bucket to Snowflake RAW schema
+
+ 
 ## Improvements
 * Create lambda function via AWS CLI rather than the AWS Console
-
-
+* Explore the dataset from the following aspects: 
+    * SQL commands to do the following can be found here [Midterm_Retail_Project/2_eda](../script/snowflake/2_eda.sql)
+    * The earliest and latest date of the sales and inventory (you need to join date_dim to see the exact date instead of date id)
+    * Row numbers of each table
+    * Pick one item to know how frequently it is ordered by customers and how frequently it is recorded in the inventory
+    * How many individual items
+    * How many individual customers
+    * etc.
+### Data Background
+* Find info about eda instructions and data background [here](./eda_and_data_description.pdf)
+* Backgroud : Retail sales
+* About: 
+    * Sales records from the website and catalog
+    * Inventory level of each item in each warehouse
+    * 15 dimensional tables with info on cutomers, warehouse, items, etc
+    * Stored by splitting into two parts
+        * RDS: All the tables except for the inventory tables are stored in the Postgres DB in AWS RDS. The tables will be refreshed every day and updated with the newest data for sales data, so in order to get the newest data, you need to run ETL processes every day.
+        * S3 Bucket: The single Inventory table is stored in an S3 bucket, every day there will be a new file containing the newest data dump into the S3 bucket. BUT, be aware that the inventory table usually only records the inventory data at the end of each week, so usually each week you can only see one entry for each item each warehouse (Please go to your RAW schema in Snowflake to explore the data). But you also need to ingest the inventory file from the S3 bucket every day.
+* Tables:
+    * View the raw data schema [here](./Tables.xlsx) In this sheet, you can see there are several tables correlated to the customer; these tables' schema is arranged horizontally. This means when you are doing ETL consider putting integrate all these tables into one customer dimension table.
+    * 
 ## Resources:
 * Course Github for project [here](https://github.com/WCD-DE/AE_Project_Student/tree/main/project_lambda_function)
 

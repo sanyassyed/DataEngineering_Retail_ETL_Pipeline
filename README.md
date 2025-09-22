@@ -60,6 +60,8 @@ Dataset: **TPCDS Benchmark Dataset (Retail Sales)**
 * **Postgres (AWS RDS):** All tables except inventory, refreshed daily.
 * **S3 Bucket:** Inventory CSV dumped daily, typically weekly snapshots.
 
+* Dataset EDA [here](./docs/project_creation.md#data-background)
+
 ### 2.2 Tables in the Dataset
 
 * Schemas available in **Snowflake**.
