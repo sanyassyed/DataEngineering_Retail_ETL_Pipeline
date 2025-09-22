@@ -1,20 +1,27 @@
--- Step 1
+------------------------------------------------------
+-- SETUP for ETL of inventory.csv via LAMBDA
+------------------------------------------------------
+-- Source Week 4 Lecture 2
+-- Step 1 - Create User & Grant Role
+-- Create User to be used by lambda function
 -- Tasks to perform for Retial ETL project
 SHOW USERS;
 
 -- create new user named wcd_midterm_load_user 
-CREATE OR REPLACE USER wcd_midterm_load_user password="wcdmidtermloaduser1234";
+CREATE OR REPLACE USER wcd_midterm_load_user password="****";
 
--- granting account admin rol
+-- granting account admin role to the new user that will be used by the lambda function
 GRANT ROLE accountadmin to USER wcd_midterm_load_user;
 
--- drop user after lecture
+-- NOTE: drop user after the project is done
 
--- Step 2
--- DATABASE & SCHEMA CREATION
+-- Step 2 CREATE DATABASE, SCHEMA & TABLE
+-- Create the db, schema & table so lambda can insert the data
 
+-- Create DB
 CREATE OR REPLACE DATABASE TPCDS;
 
+-- Create Schema
 CREATE OR REPLACE SCHEMA RAW;
 
 USE DATABASE TPCDS;

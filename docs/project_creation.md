@@ -102,12 +102,12 @@ In this step we are trying to do the following everyday at 2 am via Lambda funct
 * NOTE: - Snowflake is case sensitive if string is within quotes. For example these two are different schemas `TPCDS."raw"` and `TPCDS.RAW`
 * Use the warehouse - `compute_wh`
 * In the snowflake console create the following:
-    * Code can be viewed in the following worksheet on snowflake [Wk4_Lec2_Retail_Project worksheet](https://app.snowflake.com/ardimvt/jo76007/w45glwo1zhJK#query)
+    * Code can be viewed in the following worksheet on snowflake [Midter_Retail_Project/1_setup](../script/snowflake/1_setup.sql)
     * Database - `tpcds`
-    * schema - `raw`
-    * new user - `wcd_midterm_load_user` (give password too)
-    * grant role- `accountadmin`
-    * table - `inventory`
+    * Schema - `raw`
+    * New User - `wcd_midterm_load_user` (give password too)
+    * Grant role- `accountadmin`
+    * Table - `inventory`
     * NOTE: Changes from the lecture:
         * Make sure when writing the `inventory` table schema the `inv_warehouse_sk` column has `NULL` not `NOT NULL` as the column condition & `DEFAULT 0`
         * Remember the default value only applies when inserting into table and not when copying (like we do with the `COPY INTO` command when copying data from stage to table)
