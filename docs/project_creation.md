@@ -213,11 +213,12 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 * Create Destination - Snowflake
 * Create Connection
 * Sync Now - The data is now loaded from source to destination and this load happens every day at 2 am
-* NOTE: 
+* NOTE:
+    * Find username (postgres) and password in [this](https://learn.weclouddata.com/programs/2/courses/159d75b6-f529-492e-9c48-8d16f33a8183/weeks/2500/materials/19644?topic_id=6565) lecture at 1:39
     * For `Security` `SSL Modes` select `allow`
     * In connections for cron give `0 0 6 * * ?`
 * ERRORS:
-    * `502 ERROR`: If you get `502` error follow the below steps [resource](https://github.com/airbytehq/airbyte/issues/65567)
+    * `502 ERROR`: If you get `502` error follow the below steps [resource](https://github.com/airbytehq/airbyte/issues/65567) 
     ```bash
     # Had to also set the token by hand like this - this is in parts lifted from the slack channel
 
