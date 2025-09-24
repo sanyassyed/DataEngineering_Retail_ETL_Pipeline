@@ -1,5 +1,5 @@
 ------------------------------------------------------
--- SETUP for ETL of inventory.csv via LAMBDA
+-- SETUP for EL of inventory.csv via LAMBDA
 ------------------------------------------------------
 -- Source Week 4 Lecture 2
 -- Step 1 - Create User & Grant Role
@@ -8,7 +8,7 @@
 SHOW USERS;
 
 -- create new user named wcd_midterm_load_user 
-CREATE OR REPLACE USER wcd_midterm_load_user password="****";
+CREATE OR REPLACE USER wcd_midterm_load_user password="wcdmidtermloaduser1234";
 
 -- granting account admin role to the new user that will be used by the lambda function
 GRANT ROLE accountadmin to USER wcd_midterm_load_user;
