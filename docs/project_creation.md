@@ -210,15 +210,19 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 * Start Airbyte using the command `abctl local start`
 * Follow the steps in the [Wk 4 [Workshop] Airbyte](https://learn.weclouddata.com/programs/2/courses/159d75b6-f529-492e-9c48-8d16f33a8183/weeks/2500/materials/19647?topic_id=6566)
 * Create Source - Postgres
-   * Find username (postgres) and password in [this](https://learn.weclouddata.com/programs/2/courses/159d75b6-f529-492e-9c48-8d16f33a8183/weeks/2500/materials/19644?topic_id=6565) lecture at 1:39
+    * ![Source Connection Settings](./airbyte_1_source_setting.png)
+    * Find username (postgres) and password in [this](https://learn.weclouddata.com/programs/2/courses/159d75b6-f529-492e-9c48-8d16f33a8183/weeks/2500/materials/19644?topic_id=6565) lecture at 1:39
     * For `Security` `SSL Modes` select `allow`
     * In connections for cron give `0 0 6 * * ?`
     * For Airbyte [playground]( https://demo.airbyte.io/workspaces/55c39a0b-037d-406c-a1ac-00393b055f18/connections): 
          * For Advanced Update Method select ~`Scan Changes with User Defined Cursor`~ `Detect Changes with Xmin System Column`
          * SSL Modes as `require`
 * Create Destination - Snowflake
+   * ![Destination Connection Settings](./airbyte_2_destination_setting.png)
    * Host: Account/Server URL of your Snowflake account
 * Create Connection
+   * ![Connection Settings](./airbyte_3_connection_setting.png)
+   * In the `Configure Connection` stage select `Full refresh | Overwite` to get rid of the `primary key missing` error
 * Sync Now - The data is now loaded from source to destination and this load happens every day at 2 am
     
 * ERRORS:
