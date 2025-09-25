@@ -275,20 +275,6 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 
 ---
 
-## Data RE-LOAD
-* Due to the Snowflake account expiring and Airbyte installation on EC2 instance is incurring large costs we do the following
-   * Create another snowflake account
-   * Create an airbyte account [here]( https://demo.airbyte.io/workspaces/55c39a0b-037d-406c-a1ac-00393b055f18/connections) 
-* Load the inventory.csv again using Lambda function `wcd-de-b8-snowflake-project`
-    * Run the [script](../script/snowflake/1_setup.sql) to create the DB `TPCDS` & schema `RAW` in Snowflake
-    * Change the snowflake details in config for `account identifier`
-    * Run the lambda code by selecting `Deploy` & `Test`
-    * `Inventory` table in now loaded into TPCDS.RAW schema in Snowflake
-    * * NOTE: We are not turning on the EventTrigger as we don't want to be charged for daily data EL
-* Use Airbyte to load the other 18 tables
-
----
-
 ## Datawarehouse contents after the above steps
 * Database : TPCDS
 * SCHEMA
@@ -321,6 +307,20 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
         * Tables
             * 18 Tables
 * We now have 18 + 1 Tables in the DW in the RAW Schema
+  
+---
+
+## Data RE-LOAD
+* Due to the Snowflake account expiring and Airbyte installation on EC2 instance is incurring large costs we do the following
+   * Create another snowflake account
+   * Create an airbyte account [here]( https://demo.airbyte.io/workspaces/55c39a0b-037d-406c-a1ac-00393b055f18/connections) 
+* Load the inventory.csv again using Lambda function `wcd-de-b8-snowflake-project`
+    * Run the [script](../script/snowflake/1_setup.sql) to create the DB `TPCDS` & schema `RAW` in Snowflake
+    * Change the snowflake details in config for `account identifier`
+    * Run the lambda code by selecting `Deploy` & `Test`
+    * `Inventory` table in now loaded into TPCDS.RAW schema in Snowflake
+    * * NOTE: We are not turning on the EventTrigger as we don't want to be charged for daily data EL
+* Use Airbyte to load the other 18 tables
 
 ---
 ## Part 3: EDA and Data Modelling in Snowflake
