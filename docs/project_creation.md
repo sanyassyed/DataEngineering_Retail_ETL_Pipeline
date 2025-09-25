@@ -214,7 +214,7 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
     * For `Security` `SSL Modes` select `allow`
     * In connections for cron give `0 0 6 * * ?`
     * For Airbyte [playground]( https://demo.airbyte.io/workspaces/55c39a0b-037d-406c-a1ac-00393b055f18/connections): 
-         * For Advanced Update Method select `Scan Changes with User Defined Cursor`
+         * For Advanced Update Method select ~`Scan Changes with User Defined Cursor`~ `Detect Changes with Xmin System Column`
          * SSL Modes as `require`
 * Create Destination - Snowflake
    * Host: Account/Server URL of your Snowflake account
