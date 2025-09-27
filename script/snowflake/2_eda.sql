@@ -7,7 +7,7 @@
 -- We have data in TPCDS.RAW schema tables
 -- We will now do EDA on this raw data to understand the dataset by exploring it
 USE DATABASE TPCDS;
-USE SCHEMA raw;
+USE SCHEMA RAW;
 
 -- call_center
 SELECT * FROM raw.call_center
