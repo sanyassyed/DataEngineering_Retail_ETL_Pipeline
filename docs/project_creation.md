@@ -346,7 +346,7 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 
 ### EDA
 * Explore the dataset from the following aspects: sql code [here](../script/snowflake/2_eda.sql) 
-    * SQL commands to do the following can be found here [Midterm_Retail_Project/2_eda](../script/snowflake/2_eda.sql)
+    * SQL commands to do the following EDA can be found [here](../script/snowflake/2_eda.sql)
     * The earliest and latest date of the sales and inventory (you need to join date_dim to see the exact date instead of date id)
     * Row numbers of each table
     * Pick one item to know how frequently it is ordered by customers and how frequently it is recorded in the inventory
@@ -401,18 +401,18 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
                     * Union & Join all fact tables (catalogue_sales -daily data, web_sales -daily data, inventory - weekly data) into one `Weekly Sales Inventory` table
                     * Join is very expensive
                     * Any issues will only be found in the bigger table; as there is no intermediate table where we can perform checks
-                    * ![Option 1](./fact_tables_option1)
+                    * ![Option 1](./fact_tables_option1.png)
                 * Option 2: 
                     * * **This is the approach taken**
                     * Union the daily catalog_sales and web_sales into `Daily Sales Aggregated` and then JOIN this with the weekly inventory table to get the `Weekly Sales Inventory`
                     * Final join will be smaller than in the previous option
                     * More modular as the aggregated table can be used to create another fact table
                     * Issues can be detected in the aggregated table
-                    * ![Option 2](./fact_tables_option2)
+                    * ![Option 2](./fact_tables_option2.png)
         * NOTE: 
             * These `Intermediate` (Customer) and `Aggregated` (Daily Sales Aggregate) tables are store in a schema called `INTERMEDIATE`
             * We don't want to expose these table to the end user therefore we keep it away in a seperate schema
-            * So we have `RAW` -> `INTERMEDIATE` -> `ANALYTICS`(ENTERPRISE)
+            * So we have the following schemas : `RAW` -> `INTERMEDIATE` -> `ANALYTICS`(ENTERPRISE)
     * Physical Model - **NON-DBT APPROACH**
         * ***NOTE:*** 
             * We are going to practice manual transformation in Snowflake; 
@@ -468,13 +468,12 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
     - **Tax:** $40  
     - **Final Cost (buyer pays):** $860  
 
-[Project Source Repo](https://github.com/WCD-DE/AE_Project_Student/tree/main)
 
 
 ## Improvements
 * Create lambda function via AWS CLI rather than the AWS Console
 
 ## Resources:
-* Course Github for project [here](https://github.com/WCD-DE/AE_Project_Student/tree/main/project_lambda_function)
+* Course Github for project [here](https://github.com/WCD-DE/AE_Project_Student/tree/main)
 
 
