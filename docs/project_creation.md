@@ -323,150 +323,191 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 * Use Airbyte to load the other 18 tables
 
 ---
-## Part 3: EDA and Data Modelling in Snowflake
-* We have ingested data from RDS and S3 bucket to Snowflake RAW schema
-* In this part we look at the data in detail by understanding the data background, tables in the data and then model the data using the Kimball Data Modelling methodology
+Got it 👍 Since you said “ok,” I’ll give you a **cleaned-up version** of your notes with all the corrections applied so you can just copy/paste directly.
+
+---
+
+## Part 3: EDA and Data Modeling in Snowflake
+
+* We have ingested data from RDS and an S3 bucket into the Snowflake **RAW** schema.
+* In this part, we look at the data in detail by understanding the background, exploring the tables, and then modeling the data using the **Kimball Data Modeling methodology**.
+
+---
 
 ### Data Background
-* TPC-DS Dataset:
-    * It is a standardised Dataset which is used to test Datawarehouse efficiency. Eg: to comapare BigQuery vs Snowflake vs Databricks etc.
-    * More info on the dataset [here](https://www.fivetran.com/blog/warehouse-benchmark)
-* About: 
-    * Sales records from the website and catalog
-    * Inventory level of each item in each warehouse
-    * 15 dimensional tables with info on cutomers, warehouse, items, etc
-    * Stored by splitting into two parts
-        * RDS: All the tables except for the inventory tables are stored in the Postgres DB in AWS RDS. The tables will be refreshed every day and updated with the newest data for sales data, so in order to get the newest data, you need to run ETL processes every day.
-        * S3 Bucket: The single Inventory table is stored in an S3 bucket, every day there will be a new file containing the newest data dump into the S3 bucket. BUT, be aware that the inventory table usually only records the inventory data at the end of each week, so usually each week you can only see one entry for each item each warehouse (Please go to your RAW schema in Snowflake to explore the data). But you also need to ingest the inventory file from the S3 bucket every day.
-* Tables:
-    * View the raw data schema [here](./Tables.xlsx)
-    * In this sheet, you can see there are several tables correlated to the customer; these tables' schema is arranged horizontally.
-    * This means when you are doing ETL consider putting integrate all these tables into one customer dimension table.
-* Find more info about eda instructions and data background [here](./eda_and_data_description.pdf)
+
+* **TPC-DS Dataset**:
+
+  * A standardized dataset used to test **Data Warehouse** efficiency (e.g., comparing BigQuery vs. Snowflake vs. Databricks).
+  * More info [here](https://www.fivetran.com/blog/warehouse-benchmark).
+
+* **About**:
+
+  * Sales records from website and catalog.
+  * Inventory levels for each item in each warehouse.
+  * 15 dimension tables with information on customers, warehouses, items, etc.
+  * Stored in two parts:
+
+    * **RDS**: All tables except for the inventory table are stored in a Postgres DB in AWS RDS. These tables refresh daily with the newest sales data. To capture updates, ETL processes need to run daily.
+    * **S3 Bucket**: The inventory table is stored in S3, with a new file loaded daily. However, the inventory table typically only records data at the **end of each week**, so you’ll usually see one entry per item per warehouse each week. (Explore this in your RAW schema in Snowflake.)
+
+* **Tables**:
+
+  * View the raw data schema [here](./Tables.xlsx).
+  * Several tables are correlated to the customer; their schema is arranged horizontally.
+  * For ETL, consider integrating these into one **customer dimension table**.
+
+* More info about EDA instructions and data background [here](./eda_and_data_description.pdf).
+
+---
 
 ### EDA
-* Explore the dataset from the following aspects: sql code [here](../script/snowflake/2_eda.sql) 
-    * SQL commands to do the following EDA can be found [here](../script/snowflake/2_eda.sql)
-    * The earliest and latest date of the sales and inventory (you need to join date_dim to see the exact date instead of date id)
-    * Row numbers of each table
-    * Pick one item to know how frequently it is ordered by customers and how frequently it is recorded in the inventory
-    * How many individual items
-    * How many individual customers
-    * etc.
 
-#### Data Modelling
-* Excel with Data Dictionary, DB Schema, DW Schema is in [tpcds_schema_by_sanya.xlsx](./tpcds_schema_by_sanya.xlsx)
-* Make **Data dictionary** using tools like to add coulumn descriptions
-    * `documentation in dbt`
-    * `Collibra`
-    * `DataHub`
-    * `Excel`
-* Or add descriptions directly to the table and columns on Snowflake using the following commands
-    * `COMMENT ON TABLE / COLUMN` [more info](https://docs.snowflake.com/en/sql-reference/sql/comment)
-* Make a ERD (Entity Relationship Diagram) of the dataset if not available using tools like
-    * `Lucid` (also lets you convert the ERD to DDL)
-    * `Draw.io`
-    * ![ERD of Source DB - Data Model](./data_model_1.png)
-    * ![ERD of Source DB - Data Model](./data_model_2.png)
-    * The data models from documentation of the TPC-DS from [here](https://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v2.13.0.pdf)
-    * ![Catalog Sales - Data Model](./data_model_catalog_sales.png)
-    * ![Web Sales - Data Model](./data_model_web_sales.png)
-    * ![Inventory - Data Model](./data_model_inventory.png)
-* Perform the next stages of Data Modelling (Conceptual, Logical & Physical models)
-    * Conceptual Model: 
-        * Done [here](../script/snowflake/2_eda.sql) & the above excel sheet
-        * Identify the Grain: 
-            * look at the business requirements
-            * item should also be included in the grain otherwise it will not make sense what the total quantity is for
-            * include warehouse also in the dimension as requirement states it wants to know *inventory on hand at the end of each week in all warehouses*
-    * Logical Model 
-        * Done [here](../script/snowflake/2_eda.sql) & the above excel sheet
-        * Choose the Dimensions:
-            * Customer Dimension: 
-                * integrate it and prepare it for SCD Type 2 (currently it does not store history) 
-                * it will include the following tables - `Customer`, `Customer_address`, `Customer_demographics`, `Household_demographics` & `Income_band`
-                * Question to ask: 
-                    * Option 1: - Type 2 SCD only on customer table and create `Customer Intermediate` table  and then join other tables
-                        * **This is the approach taken**
-                        * Type 2 SCD only on customer table i.e. do want to maintain the history only in the customer table
-                        * Snowflake Schema: If we want history of only customer table then we do SCD Type 2 on only the customer table and then later join the address, etc. In this case the address info etc will be over written but info like customer birthdate, names etc (Which are in the customer table) will have history
-                        * ![Option 1](./customer_dim_option1.png)
-                    * Option 2: Join all the tables and then do Type 2 SCD
-                        * So you can maintain history on all
-                        * Star Schema: If we maintain history for all the above tables we first join them all and then do Type 2 SCD
-                        * ![Option 2](./customer_dim_option2.png) 
-        * Choose the Measure
-            * Question to ask:
-                * Option 1: 
-                    * Union & Join all fact tables (catalogue_sales -daily data, web_sales -daily data, inventory - weekly data) into one `Weekly Sales Inventory` table
-                    * Join is very expensive
-                    * Any issues will only be found in the bigger table; as there is no intermediate table where we can perform checks
-                    * ![Option 1](./fact_tables_option1.png)
-                * Option 2: 
-                    * * **This is the approach taken**
-                    * Union the daily catalog_sales and web_sales into `Daily Sales Aggregated` and then JOIN this with the weekly inventory table to get the `Weekly Sales Inventory`
-                    * Final join will be smaller than in the previous option
-                    * More modular as the aggregated table can be used to create another fact table
-                    * Issues can be detected in the aggregated table
-                    * ![Option 2](./fact_tables_option2.png)
-        * NOTE: 
-            * These `Intermediate` (Customer) and `Aggregated` (Daily Sales Aggregate) tables are store in a schema called `INTERMEDIATE`
-            * We don't want to expose these table to the end user therefore we keep it away in a seperate schema
-            * So we have the following schemas : `RAW` -> `INTERMEDIATE` -> `ANALYTICS`(ENTERPRISE)
-    * Physical Model - **NON-DBT APPROACH**
-        * ***NOTE:*** 
-            * We are going to practice manual transformation in Snowflake; 
-            * Therefore we create a copy of TPCDS DB called `SF_TPCDS` to do the next steps
-            * TPCDS will be used to perform tranformations with `dbt`
-        * Create the two schemas `INTERMEDIATE` (hidden from the end user eg: data analyst ect) & `ANALYTICS` (ENTERPRISE Schema) in `SF_TPCDS`
-        * Use `Excel` [tpcds_schema_by_sanya.xlsx](./tpcds_schema_by_sanya.xlsx), `Lucid` or `draw.io` to draw the star schema 
-        * ![Dimention Model](./dimension_model_1.png)
-        * ![Dimention Model](./dimension_model_2.png)
-        * TODO: Data Dictionaty in Excel [here](./tpcds_schema_by_sanya.xlsx)
-        * DDL [script](./script/snowflake/3_ddl.sql) to **CREATE** the following tables
-            * INTERMEDIATE SCHEMA
-                * dim_customer_intermediate (`customer` table Type 2 SCD)
-                * fact_daily_sales_aggregated (UNION `catalogue_sales` & `web_sales`)
-            * ANALYTICS SCHEMA
-                * dim_customer (`dim_customer_intermediate`, LEFT JOIN `customer_address`, `customer_demographics`, `household_demographics` & `income_band`)
-                * fact_weekly_sales_inventory (`fact_daily_sales_aggregated`, `inventory`)
-                * ~~dim_calendar~~
-                * ~~dim_item~~
-                * ~~dim_warehouse~~
-            * BEST PRACTICES:
-                * Keep the timezone as `TIMESTAMP_NTZ` because you want to keep the time in UTC; any timezone conversions should be done in the very last stage
-        * DML to **LOAD** the following tables using the **Incremental Load** DATA LOADING Methodology
-            * dim_customer [script](../script/snowflake/4_dml_dim_customer.sql)
-                * `dim_customer_aggregate TRANSITION TABLE` - `Initial Load` & `Delta Load` - Same script for INSERT & UPDATE - Type 2 SCD
-                * `dim_customer` - Insert code
-                * GRAIN: Each row contains the auto increment customer_sk and all other customer related data
-                * `RAW.customer` -TYPE 2 SCD-> `INTERMEDIATE.dim_customer_intermediate` LEFT JOINS `customer_address`, `customer_demographics`, `household_demographics` & `income_band` --> `ANALYTICS.dim_customer`
-            * fact_daily_sales_aggregated [script](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql)
-                * RUN DAILY
-                * `RAW.catalogue_sales` UNION `RAW.web_sales` LEFT JOIN `RAW.date_dim` --> `INTERMEDIATE.fact_daily_sales_aggregated` 
-            * fact_weekly_sales_aggregated [script](../script/snowflake/6_dml_fact_weekly_sales_inventory.sql)
-                * RUN WEEKLY
-                * `INTERMEDIATE.fact_daily_sales_aggregated` INNER JOIN `RAW.date_dim` LEFT JOIN `RAW.inventory` --> `ANALYTICS.fact_weekly_sales_inventory`
-            * **NOTE:** : Future Improvements
-                * Add the calendar, item and warehouse dimensions so we join to these dim tables rather than the raw tables
-                * Add auto increment surrogate keys to all the dimensions and facts and name the current `sk` rows as `sk_natural`
+* Explore the dataset from the following aspects (SQL code [here](../script/snowflake/2_eda.sql)):
 
+  * The earliest and latest dates for sales and inventory (join with `date_dim` to get exact dates instead of IDs).
+  * Row counts of each table.
+  * Frequency of orders for a selected item and how often it is recorded in inventory.
+  * Number of individual items.
+  * Number of individual customers.
+  * etc.
 
-#### Retail Project Terminologies
+---
+
+### Data Modeling
+
+* Data Dictionary, DB Schema, and DW Schema: [tpcds_schema_by_sanya.xlsx](./tpcds_schema_by_sanya.xlsx)
+
+* Create a **Data Dictionary** with column descriptions using tools like:
+
+  * dbt documentation
+  * Collibra
+  * DataHub
+  * Excel
+
+* Or add descriptions directly in Snowflake with `COMMENT ON TABLE / COLUMN` ([docs](https://docs.snowflake.com/en/sql-reference/sql/comment)).
+
+* Create an ERD (Entity Relationship Diagram) using tools such as:
+
+  * Lucid (also converts ERDs to DDL)
+  * Draw.io
+  * ![ERD of Source DB - Data Model](./data_model_1.png)
+  * ![ERD of Source DB - Data Model](./data_model_2.png)
+  * TPC-DS documentation [here](https://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v2.13.0.pdf)
+  * ![Catalog Sales - Data Model](./data_model_catalog_sales.png)
+  * ![Web Sales - Data Model](./data_model_web_sales.png)
+  * ![Inventory - Data Model](./data_model_inventory.png)
+
+---
+
+#### Modeling Stages
+
+**Conceptual Model**
+
+* Done [here](../script/snowflake/2_eda.sql) & Excel file above.
+* Identify the grain:
+
+  * Refer to business requirements.
+  * Include `item` in the grain; otherwise, total quantities won’t make sense.
+  * Include `warehouse` as requirements specify tracking inventory on hand weekly per warehouse.
+
+**Logical Model**
+
+* Done [here](../script/snowflake/2_eda.sql) & Excel file above.
+
+* Choose dimensions:
+
+  * **Customer Dimension**:
+
+    * Integrate and prepare for SCD Type 2 (currently no history).
+    * Includes: `customer`, `customer_address`, `customer_demographics`, `household_demographics`, `income_band`.
+    * Options:
+
+      * **Option 1 (Chosen Approach)**: Apply Type 2 SCD only on the `customer` table, then join with others. (Snowflake schema style).
+      * **Option 2**: Join all tables first, then apply Type 2 SCD (Star schema style).
+
+* Choose measures:
+
+  * **Option 1**: Union & join all fact tables (`catalog_sales` daily, `web_sales` daily, `inventory` weekly) → one big `Weekly Sales Inventory` table. (Expensive joins, harder debugging.)
+  * **Option 2 (Chosen Approach)**:
+
+    * Union daily `catalog_sales` + `web_sales` → `Daily Sales Aggregated`.
+    * Join with weekly `inventory` → `Weekly Sales Inventory`.
+    * Modular, smaller join, easier to debug.
+
+* Note:
+
+  * Intermediate (`Customer`, `Daily Sales Aggregated`) tables are stored in the **INTERMEDIATE** schema.
+  * These are hidden from end users (e.g., analysts).
+  * Flow: **RAW → INTERMEDIATE → ANALYTICS (Enterprise)**.
+
+**Physical Model – Non-dbt Approach**
+
+* Practice manual transformations in Snowflake by creating a copy of TPCDS DB: `SF_TPCDS`.
+
+* Create schemas: `INTERMEDIATE` (hidden) & `ANALYTICS` (Enterprise).
+
+* Use [Excel](./tpcds_schema_by_sanya.xlsx), Lucid, or Draw.io for star schema diagrams.
+
+* ![Dimension Model](./dimension_model_1.png)
+
+* ![Dimension Model](./dimension_model_2.png)
+
+* Data Dictionary in Excel: [tpcds_schema_by_sanya.xlsx](./tpcds_schema_by_sanya.xlsx)
+
+* DDL script: [3_ddl.sql](./script/snowflake/3_ddl.sql) creates:
+
+  * **INTERMEDIATE schema**:
+
+    * `dim_customer_intermediate` (customer table with Type 2 SCD)
+    * `fact_daily_sales_aggregated` (union of `catalog_sales` & `web_sales`)
+  * **ANALYTICS schema**:
+
+    * `dim_customer` (joins customer intermediate with address, demographics, household, income)
+    * `fact_weekly_sales_inventory` (joins daily sales aggregated with inventory)
+    * ~~dim_calendar~~
+    * ~~dim_item~~
+    * ~~dim_warehouse~~
+
+* Best Practices:
+
+  * Keep timezone as `TIMESTAMP_NTZ` (UTC). Convert time zones only in the final stage.
+
+* DML (Incremental Load):
+
+  * **dim_customer** → [4_dml_dim_customer.sql](../script/snowflake/4_dml_dim_customer.sql)
+  * **fact_daily_sales_aggregated** → [5_dml_fact_daily_sales_aggregated.sql](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql)
+  * **fact_weekly_sales_inventory** → [6_dml_fact_weekly_sales_inventory.sql](../script/snowflake/6_dml_fact_weekly_sales_inventory.sql)
+
+* Future Improvements:
+
+  * Add calendar, item, and warehouse dimensions.
+  * Add surrogate keys to all dimensions and facts; rename current `sk` columns as `sk_natural`.
+
+---
+
+### Retail Project Terminologies
+
 * 🔑 Quick Memory Guide
-    - **List Price** = Before discount  
-    - **Net Price / Sale Price** = After discount  
-    - **Net Cost** = Seller’s cost  
-    - **Final Cost** = What the buyer actually pays after adding shipping & tax  
-* ✅ Full Example Walkthrough
-    - **List Price:** $1000  
-    - **Discount:** $200  
-    - **Net Price / Sale Price (after discount):** $800  
-    - **Seller’s Net Cost:** $600  
-    - **Profit:** $200 (800 – 600)  
-    - **Shipping:** $20  
-    - **Tax:** $40  
-    - **Final Cost (buyer pays):** $860  
+
+  * **List Price** = Before discount
+  * **Net Price (Sale Price)** = After discount
+  * **Net Cost** = Seller’s cost
+  * **Final Cost** = Buyer pays (after shipping & tax)
+
+* ✅ Example Walkthrough
+
+  * **List Price:** $1000
+  * **Discount:** $200
+  * **Net Price / Sale Price:** $800
+  * **Seller’s Net Cost:** $600
+  * **Profit:** $200 (800 – 600)
+  * **Shipping:** $20
+  * **Tax:** $40
+  * **Final Cost (buyer pays):** $860
+
+---
+
 
 
 
