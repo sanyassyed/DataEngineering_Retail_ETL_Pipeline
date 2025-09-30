@@ -475,6 +475,10 @@ flowchart LR
     INTERMEDIATE -->|Daily + Weekly ETL| ANALYTICS
 ```
 
+### Testing & Scheduling
+* Tests are perfomed to check for data integrity
+* The incremental loads are run daily and weekly using stored procedures
+
 **Scripts**
 
 * [3_ddl.sql](./script/snowflake/3_ddl.sql) → Create tables in ANALYTICS Schema
