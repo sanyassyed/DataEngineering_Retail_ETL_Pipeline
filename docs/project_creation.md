@@ -360,6 +360,11 @@ RAW → INTERMEDIATE → ANALYTICS
   * [Tables.xlsx](./Tables.xlsx)
   * [EDA & Background PDF](./eda_and_data_description.pdf)
 
+📊 ERDs of source schema:
+
+* ![ERD of Source DB - Data Model](./data_model_1.png)
+* ![ERD of Source DB - Data Model](./data_model_2.png)
+
 ---
 
 ### 3. Exploratory Data Analysis (EDA)
@@ -374,6 +379,12 @@ Check:
 * Frequency of inventory records for that item.
 * Number of unique items.
 * Number of unique customers.
+
+📊 TPC-DS official diagrams for reference:
+
+* ![Catalog Sales - Data Model](./data_model_catalog_sales.png)
+* ![Web Sales - Data Model](./data_model_web_sales.png)
+* ![Inventory - Data Model](./data_model_inventory.png)
 
 ---
 
@@ -391,30 +402,29 @@ Check:
 
 #### 4.2 Logical Model
 
-**Dimensions**
+**Customer Dimension (SCD Type 2 Options):**
 
-* Customer Dimension: integrate → `customer`, `customer_address`, `customer_demographics`, `household_demographics`, `income_band`
-* SCD Type 2 Options:
+* **Option 1 (Chosen):**
+  SCD only on `customer` table → join others later.
 
-  1. **Option 1 (Chosen)**: SCD only on `customer` table → join others later (Snowflake schema).
+  * ![Option 1](./customer_dim_option1.png)
 
-     * ![Option 1](./customer_dim_option1.png)
-  2. Option 2: Join all first → SCD across all (Star schema).
+* **Option 2:**
+  Join all first → SCD across all.
 
-     * ![Option 2](./customer_dim_option2.png)
+  * ![Option 2](./customer_dim_option2.png)
 
-**Facts / Measures**
+**Facts / Measures Options:**
 
-* Options:
+* **Option 1:** Union all (`catalog_sales`, `web_sales`, `inventory`) into one table → ❌ heavy joins.
 
-  1. Union all (`catalog_sales`, `web_sales`, `inventory`) into one table → ❌ heavy joins.
+  * ![Option 1](./fact_tables_option1.png)
 
-     * ![Option 1](./fact_tables_option1.png)
-  2. **Chosen**:
+* **Option 2 (Chosen):**
 
-     * Step 1: Union `catalog_sales` + `web_sales` → `Daily Sales Aggregated`
-     * Step 2: Join with weekly `inventory` → `Weekly Sales Inventory`
-     * ![Option 2](./fact_tables_option2.png)
+  * Step 1: Union `catalog_sales` + `web_sales` → `Daily Sales Aggregated`
+  * Step 2: Join with weekly `inventory` → `Weekly Sales Inventory`
+  * ![Option 2](./fact_tables_option2.png)
 
 ---
 
@@ -433,53 +443,16 @@ Check:
 
   * `dim_customer_intermediate` (SCD2)
   * `fact_daily_sales_aggregated`
+  * ![Dimension Model for Customer Table Part 1](./dimension_model_1.png)
+  * ![Dimension Model for Customer Table Part 2](./dimension_model_2.png)
+
 * ANALYTICS:
 
   * `dim_customer`
   * `fact_weekly_sales_inventory`
   * (future: `dim_calendar`, `dim_item`, `dim_warehouse`)
 
-**Scripts**
 
-* [3_ddl.sql](./script/snowflake/3_ddl.sql) → Create tables in ANALYTICS Schema
-* [4_dml_dim_customer.sql](../script/snowflake/4_dml_dim_customer.sql) → Load `dim_customer` (incremental, SCD2) INTERDIATE & ANALYTICS SCHEMA
-* [5_dml_fact_daily_sales_aggregated.sql](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql) → Load fact (daily) INTERMEDIATE SCHEMA
-* [6_dml_fact_weekly_sales_inventory.sql](../script/snowflake/6_dml_fact_weekly_sales_inventory.sql) → Load fact (weekly) ANALYTICS SCHEMA
-* [7_testing.sql](../script/snowflake/7_testing.sql) → Tests to check the loads
-* [8_task_and_stored_procedure_dimension.sql](../script/snowflake/8_task_and_stored_procedure_dimension.sql) → Tasks and Procedures to incrementally load dimention tables daily
-* [9_task_and_stored_procedure_facts.sql](../script/snowflake/9_task_and_stored_procedure_facts) → Tasks and Procedures to incrementally load fact tables daily and weekly
-
-**Best Practice**
-
-* Use `TIMESTAMP_NTZ` (UTC).
-* Surrogate keys for all future dims & facts.
-
-
-**Visual References**
-
-* ERDs:
-
-  * ![ERD of Source DB - Data Model](./data_model_1.png)
-  * ![ERD of Source DB - Data Model](./data_model_2.png)
-* TPC-DS official diagrams:
-
-  * ![Catalog Sales - Data Model](./data_model_catalog_sales.png)
-  * ![Web Sales - Data Model](./data_model_web_sales.png)
-  * ![Inventory - Data Model](./data_model_inventory.png)
-* Star Schema Diagrams:
-
-  * ![Dimension Model](./dimension_model_1.png)
-  * ![Dimension Model](./dimension_model_2.png)
-
----
-
-## 5. Tools for Documentation
-
-* Data Dictionary: Excel, dbt docs, Collibra, DataHub
-* ERD: Lucid, Draw.io
-* Add descriptions: `COMMENT ON TABLE / COLUMN`
-
----
 ```mermaid
 flowchart LR
     RAW["RAW Schema
@@ -501,9 +474,33 @@ flowchart LR
     RAW -->|Daily ETL| INTERMEDIATE
     INTERMEDIATE -->|Daily + Weekly ETL| ANALYTICS
 ```
+
+**Scripts**
+
+* [3_ddl.sql](./script/snowflake/3_ddl.sql) → Create tables in ANALYTICS Schema
+* [4_dml_dim_customer.sql](../script/snowflake/4_dml_dim_customer.sql) → Load `dim_customer` (incremental, SCD2) INTERDIATE & ANALYTICS SCHEMA
+* [5_dml_fact_daily_sales_aggregated.sql](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql) → Load fact (daily) INTERMEDIATE SCHEMA
+* [6_dml_fact_weekly_sales_inventory.sql](../script/snowflake/6_dml_fact_weekly_sales_inventory.sql) → Load fact (weekly) ANALYTICS SCHEMA
+* [7_testing.sql](../script/snowflake/7_testing.sql) → Tests to check the loads
+* [8_task_and_stored_procedure_dimension.sql](../script/snowflake/8_task_and_stored_procedure_dimension.sql) → Tasks and Procedures to incrementally load dimention tables daily
+* [9_task_and_stored_procedure_facts.sql](../script/snowflake/9_task_and_stored_procedure_facts) → Tasks and Procedures to incrementally load fact tables daily and weekly
+
+**Best Practice**
+
+* Use `TIMESTAMP_NTZ` (UTC).
+* Surrogate keys for all future dims & facts.
+
 ---
 
-## 6. Retail Terminology Quick Guide
+### 5. Tools for Documentation
+
+* Data Dictionary: Excel, dbt docs, Collibra, DataHub
+* ERD: Lucid, Draw.io
+* Add descriptions: `COMMENT ON TABLE / COLUMN`
+
+---
+
+### 6. Retail Terminology Quick Guide
 
 * **List Price** = Before discount
 * **Net Price (Sale Price)** = After discount
