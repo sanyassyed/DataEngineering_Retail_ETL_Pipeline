@@ -6,7 +6,7 @@ This file contains the steps followed to create this project
     * **Part 1 & 2** - Airbyte, Lambda & Project Data Ingestion - Week 4 Lecture 2
     * **Part 3** - EDA on Snowflake - Week 7 Lecture 1 
 
-## Tools & Setup Required
+## ⚙️ Tools & Setup:
 * `S3` 
     * USE: to get `inventory.csv` from the WeCloudData Bucket
 * `Snowflake Console` 
@@ -582,10 +582,10 @@ flowchart LR
 * Final Cost = $860
 
 ---
-## Improvements
+## 🔮 Future Improvements
 * Create lambda function via AWS CLI rather than the AWS Console
 
-## Resources:
+## 🌱 Resources:
 * Course Github for project [here](https://github.com/WCD-DE/AE_Project_Student/tree/main)
 
 
