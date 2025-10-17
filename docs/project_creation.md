@@ -329,7 +329,7 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
   
 ---
 
-## 📘 Part 3: EDA & Data Modeling
+## 📘 Part 3: Data Exploration, Modeling & Transformation
 
 ---
 
@@ -368,7 +368,7 @@ RAW → INTERMEDIATE → ANALYTICS
 
 ---
 
-### 3. Exploratory Data Analysis (EDA)
+### 3. Data Exploration / Exploratory Data Analysis (EDA)
 
 👉 Use [2_eda.sql](../script/snowflake/2_eda.sql)
 
@@ -389,7 +389,9 @@ Check:
 
 ---
 
-### 4 Data Modeling 
+### 4 Data Modeling & Transformation
+
+---
 
 #### 4.1 Conceptual Model
 
@@ -429,19 +431,25 @@ Check:
 
 ---
 
-#### 4.3 Physical Model 
+#### 4.3 Physical Model & Transformation
 **Scripts**
 
 * [3_ddl.sql](../script/snowflake/3_ddl.sql) → Create tables in ANALYTICS Schema
+
+---
 
 ##### Option 1) In Snowflake 
 
 👉 Practice manual transformations in a copy TPCDS i.e. `SF_TPCDS` database.
 
+---
+
 ###### i) **Schemas**
 
 * INTERMEDIATE: staging + hidden tables
 * ANALYTICS: enterprise-facing
+
+---
 
 ###### ii) **Tables**
 
@@ -480,10 +488,13 @@ flowchart LR
     RAW -->|Daily ETL| INTERMEDIATE
     INTERMEDIATE -->|Daily + Weekly ETL| ANALYTICS
 ```
+---
 
 ###### iii) Testing & Scheduling
 * Tests are perfomed to check for data integrity
 * The incremental loads are run daily and weekly using stored procedures
+
+---
 
 ###### iv) **Scripts**
 
@@ -505,13 +516,16 @@ flowchart LR
 ---
 
 #####  Option 1) In dbt
+* dbt project [here](../dbt_tpcds)
 
-👉 Practice manual transformations in a copy TPCDS i.e. `SF_TPCDS` database.
+---
 
 ###### i) **Schemas**
 
 * INTERMEDIATE: staging + hidden tables
 * ANALYTICS: enterprise-facing
+
+---
 
 ###### ii) **Tables**
 
@@ -519,8 +533,6 @@ flowchart LR
 
   * `dim_customer_intermediate` (SCD2)
   * `fact_daily_sales_aggregated`
-  * ![Dimension Model for Customer Table Part 1](./dimension_model_1.png)
-  * ![Dimension Model for Customer Table Part 2](./dimension_model_2.png)
 
 * ANALYTICS:
 
@@ -528,19 +540,13 @@ flowchart LR
   * `fact_weekly_sales_inventory`
   * (future: `dim_calendar`, `dim_item`, `dim_warehouse`)
 
-  
+---
+
 ###### iii) Testing & Scheduling
 ???
 
 ###### iv) **Scripts**
 ???
-* [4_dml_dim_customer.sql](../script/snowflake/4_dml_dim_customer.sql) → Load `dim_customer` (incremental, SCD2) INTERDIATE & ANALYTICS SCHEMA
-* [5_dml_fact_daily_sales_aggregated.sql](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql) → Load fact (daily) INTERMEDIATE SCHEMA
-* [6_dml_fact_weekly_sales_inventory.sql](../script/snowflake/6_dml_fact_weekly_sales_inventory.sql) → Load fact (weekly) ANALYTICS SCHEMA
-* [7_testing.sql](../script/snowflake/7_testing.sql) → Tests to check the loads
-* [8_task_and_stored_procedure_dimension.sql](../script/snowflake/8_task_and_stored_procedure_dimension.sql) → Tasks and Procedures to incrementally load dimention tables daily
-* [9_task_and_stored_procedure_facts.sql](../script/snowflake/9_task_and_stored_procedure_facts) → Tasks and Procedures to incrementally load fact tables daily and weekly
-
 
 ---
 
@@ -554,6 +560,8 @@ flowchart LR
 * Use `TIMESTAMP_NTZ` (UTC).
 * Surrogate keys for all future dims & facts.
 * 
+
+---
 
 ### 6 Retail Terminology Quick Guide
 
