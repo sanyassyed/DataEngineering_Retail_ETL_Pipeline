@@ -71,7 +71,7 @@ In this step we are trying to do the following everyday at 2 am via Lambda funct
 1. Truncates the inventory table
 1. Copies the `inventory_stage/inventory.csv.gz` from the `INVENTORY_STAGE` named stage into the `inventory` table
 
-### Step 1 : Pre-requisite
+### Step 1 : System Pre-requisite
 * **Host Machine**: environment to build the lambda layer
     * conda
     * aws cli
@@ -97,7 +97,7 @@ In this step we are trying to do the following everyday at 2 am via Lambda funct
     ]
     }
     ```
-### Step 2: Snowflake 
+### Step 2: Snowflake Setup
 * Instructions in `Week 4 - Exercise 1-Snowflake` & `Week 4 - Lecture 2 - Airbyte, Lambda & Project Data Ingestion` Notes
 * NOTE: - Snowflake is case sensitive if string is within quotes. For example these two are different schemas `TPCDS."raw"` and `TPCDS.RAW`
 * Use the warehouse - `compute_wh`
@@ -202,11 +202,13 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 1. Loads the tables into the staging/landing schema `airbyte_internal` 
 1. Loads the tables from the `airbyte_internal` schema into the `raw` schema via `CREATE TABLE` & `INSERT INTO`
 
-### Tools
+### Option 1: Data Loading via Airbyte on EC2 instance
+#### a) Tools
 * Host EC2 instance (zara_de)
-* Airbyte in `Airbyte` EC2 t2.xlarge instance with 20GB memory
+* Airbyte & Docker in `Airbyte` EC2 t2.xlarge instance with 20GB memory 
 
-### Step 1: Setup & Start Airbyte
+#### b) Steps 
+* Setup, Start Airbyte & Load data into Snowflake via EC2 instance & Docker
 * Start Airbyte using the command `abctl local start`
 * Follow the steps in the [Wk 4 [Workshop] Airbyte](https://learn.weclouddata.com/programs/2/courses/159d75b6-f529-492e-9c48-8d16f33a8183/weeks/2500/materials/19647?topic_id=6566)
 * Create Source - Postgres
@@ -275,7 +277,24 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
 
 ---
 
-## Datawarehouse contents after the above steps
+### Option 2: Data Loading via Airbyte Console (Playground)
+#### a) Tools
+* Airbyte Account
+
+#### b) Steps
+* Due to the Snowflake account expiring and Airbyte installation on EC2 instance is incurring large costs we do the following
+   * Create another snowflake account
+   * Create an airbyte account [here]( https://demo.airbyte.io/workspaces/55c39a0b-037d-406c-a1ac-00393b055f18/connections) 
+* Load the inventory.csv again using Lambda function `wcd-de-b8-snowflake-project`
+    * Run the [script](../script/snowflake/1_setup.sql) to create the DB `TPCDS` & schema `RAW` in Snowflake
+    * Change the snowflake details in config for `account identifier`
+    * Run the lambda code by selecting `Deploy` & `Test`
+    * `Inventory` table in now loaded into TPCDS.RAW schema in Snowflake
+    * * NOTE: We are not turning on the EventTrigger as we don't want to be charged for daily data EL
+* Use Airbyte to load the other 18 tables
+
+---
+### Result: Datawarehouse after LOADING
 * Database : TPCDS
 * SCHEMA
     * RAW
@@ -308,20 +327,6 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
             * 18 Tables
 * We now have 18 + 1 Tables in the DW in the RAW Schema
   
----
-
-## Data RE-LOAD
-* Due to the Snowflake account expiring and Airbyte installation on EC2 instance is incurring large costs we do the following
-   * Create another snowflake account
-   * Create an airbyte account [here]( https://demo.airbyte.io/workspaces/55c39a0b-037d-406c-a1ac-00393b055f18/connections) 
-* Load the inventory.csv again using Lambda function `wcd-de-b8-snowflake-project`
-    * Run the [script](../script/snowflake/1_setup.sql) to create the DB `TPCDS` & schema `RAW` in Snowflake
-    * Change the snowflake details in config for `account identifier`
-    * Run the lambda code by selecting `Deploy` & `Test`
-    * `Inventory` table in now loaded into TPCDS.RAW schema in Snowflake
-    * * NOTE: We are not turning on the EventTrigger as we don't want to be charged for daily data EL
-* Use Airbyte to load the other 18 tables
-
 ---
 
 ## 📘 Part 3: EDA & Data Modeling
@@ -429,16 +434,16 @@ Check:
 
 * [3_ddl.sql](../script/snowflake/3_ddl.sql) → Create tables in ANALYTICS Schema
 
-##### A) In Snowflake (Option 1)
+##### Option 1) In Snowflake 
 
 👉 Practice manual transformations in a copy TPCDS i.e. `SF_TPCDS` database.
 
-###### **Schemas**
+###### i) **Schemas**
 
 * INTERMEDIATE: staging + hidden tables
 * ANALYTICS: enterprise-facing
 
-###### **Tables**
+###### ii) **Tables**
 
 * INTERMEDIATE:
 
@@ -476,11 +481,11 @@ flowchart LR
     INTERMEDIATE -->|Daily + Weekly ETL| ANALYTICS
 ```
 
-###### Testing & Scheduling
+###### iii) Testing & Scheduling
 * Tests are perfomed to check for data integrity
 * The incremental loads are run daily and weekly using stored procedures
 
-###### **Scripts**
+###### iv) **Scripts**
 
 * [4_dml_dim_customer.sql](../script/snowflake/4_dml_dim_customer.sql) → Load `dim_customer` (incremental, SCD2) INTERDIATE & ANALYTICS SCHEMA
 * [5_dml_fact_daily_sales_aggregated.sql](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql) → Load fact (daily) INTERMEDIATE SCHEMA
@@ -491,7 +496,7 @@ flowchart LR
 
 ---
 
-###### Tools for Documentation
+###### v) Tools for Documentation
 
 * Data Dictionary: Excel, dbt docs, Collibra, DataHub
 * ERD: Lucid, Draw.io
@@ -499,16 +504,16 @@ flowchart LR
 
 ---
 
-##### B) In dbt (Option 2)
+#####  Option 1) In dbt
 
 👉 Practice manual transformations in a copy TPCDS i.e. `SF_TPCDS` database.
 
-###### **Schemas**
+###### i) **Schemas**
 
 * INTERMEDIATE: staging + hidden tables
 * ANALYTICS: enterprise-facing
 
-###### **Tables**
+###### ii) **Tables**
 
 * INTERMEDIATE:
 
@@ -524,10 +529,10 @@ flowchart LR
   * (future: `dim_calendar`, `dim_item`, `dim_warehouse`)
 
   
-###### Testing & Scheduling
+###### iii) Testing & Scheduling
 ???
 
-###### **Scripts**
+###### iv) **Scripts**
 ???
 * [4_dml_dim_customer.sql](../script/snowflake/4_dml_dim_customer.sql) → Load `dim_customer` (incremental, SCD2) INTERDIATE & ANALYTICS SCHEMA
 * [5_dml_fact_daily_sales_aggregated.sql](../script/snowflake/5_dml_fact_daily_sales_aggregated.sql) → Load fact (daily) INTERMEDIATE SCHEMA
@@ -539,7 +544,7 @@ flowchart LR
 
 ---
 
-###### Tools for Documentation
+###### v) Tools for Documentation
 ???
 
 ---
