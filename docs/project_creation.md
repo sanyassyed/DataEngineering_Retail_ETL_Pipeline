@@ -389,7 +389,7 @@ Check:
 
 ---
 
-### 4 Data Modeling & Transformation
+### 4. Data Modeling & Transformation
 
 ---
 
@@ -507,14 +507,6 @@ flowchart LR
 
 ---
 
-###### v) Tools for Documentation
-
-* Data Dictionary: Excel, dbt docs, Collibra, DataHub
-* ERD: Lucid, Draw.io
-* Add descriptions: `COMMENT ON TABLE / COLUMN`
-
----
-
 #####  Option 1) In dbt
 * dbt project [here](../dbt_tpcds)
 
@@ -550,12 +542,15 @@ flowchart LR
 
 ---
 
-###### v) Tools for Documentation
-???
+### 5. Tools for Documentation
+
+* Data Dictionary: Excel, dbt docs, Collibra, DataHub
+* ERD: Lucid, Draw.io
+* Add descriptions: `COMMENT ON TABLE / COLUMN`
 
 ---
 
-### 5 **Modelling Best Practice**
+### 6. **Modelling Best Practice**
 
 * Use `TIMESTAMP_NTZ` (UTC).
 * Surrogate keys for all future dims & facts.
@@ -563,7 +558,7 @@ flowchart LR
 
 ---
 
-### 6 Retail Terminology Quick Guide
+### 7. Retail Terminology Quick Guide
 
 * **List Price** = Before discount
 * **Net Price (Sale Price)** = After discount
@@ -582,6 +577,7 @@ flowchart LR
 * Final Cost = $860
 
 ---
+
 
 ## 📘 Part 4: Metabase - VISUALIZATION
 
