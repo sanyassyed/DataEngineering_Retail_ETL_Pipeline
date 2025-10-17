@@ -63,7 +63,7 @@ This file contains the steps followed to create this project
 
 ---
 
-## 📘 Part 1 : s3 -> Lambda -> Snowflake
+## 📘 Part 1 : s3 -> Lambda -> Snowflake - LOADING
 In this step we are trying to do the following everyday at 2 am via Lambda functions `EventBridge` Trigger
 1. Pulls the `inventory.csv` file from WCD's S3 bucket via `REQUEST PAYER` accessed via user secret and key and writes is locally to the `/tmp` folder
 1. Lambda then creates `comma_csv` file format & a named stage called `INVENTORY_STAGE`
@@ -196,7 +196,7 @@ In this step we are trying to do the following everyday at 2 am via Lambda funct
 
 ---
 
-## 📘 Part 2: RDS Postgres -> Airbyte -> Snowflake
+## 📘 Part 2: RDS Postgres -> Airbyte -> Snowflake -LOADING
 In this step we are trying to do the following everyday at 2 am via Airbyte
 1. Pulls the 18 tables from RDS(Postgres) 
 1. Loads the tables into the staging/landing schema `airbyte_internal` 
@@ -329,7 +329,7 @@ In this step we are trying to do the following everyday at 2 am via Airbyte
   
 ---
 
-## 📘 Part 3: Data Exploration, Modeling & Transformation
+## 📘 Part 3: Data EXPLORATION, MODELLING & TRANSFORMATION
 
 ---
 
@@ -582,6 +582,9 @@ flowchart LR
 * Final Cost = $860
 
 ---
+
+## 📘 Part 4: Metabase - VISUALIZATION
+
 ## 🔮 Future Improvements
 * Create lambda function via AWS CLI rather than the AWS Console
 
