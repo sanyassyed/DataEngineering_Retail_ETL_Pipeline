@@ -1,0 +1,13 @@
+dbt_walmart:
+  outputs:
+    dev:
+      account: *******-******* # (snowflake account identifier)
+      database: WALMART
+      password: ****
+      role: ACCOUNTADMIN
+      schema: LAND
+      threads: 1
+      type: snowflake
+      user: **** # (snowflake login name)
+      warehouse: COMPUTE_WH
+  target: dev

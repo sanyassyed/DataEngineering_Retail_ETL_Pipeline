@@ -1,5 +1,6 @@
 # .env files
 .env
+.venv
 
 
 # virtual environment files
@@ -24,3 +25,6 @@ __pycache__/*
 
 # lambda_layers
 script/lambda_layers/*
+
+# dbt files
+profiles.yml

@@ -509,7 +509,74 @@ flowchart LR
 
 #####  Option 2) In dbt
 * dbt project [here](../dbt_tpcds)
+* Create the `dbt_tpcds` project as follows: [reference notes](https://github.com/sanyassyed/DataEngineering_Walmart_ETL_Using_Dbt/tree/main)
 
+``` bash
+conda create --prefix /home/ubuntu/DataEngineering_Retail_ETL_Pipeline/.venv python=3.12 pip -y
+conda activate .venv
+python -m pip install --upgrade pip
+pip install dbt-core dbt-snowflake
+dbt --version
+dbt init dbt_tpcds
+# 1 to select snowflake
+# account - *******-******* (snowflake account identifier)
+# user - **** (snowflake login name)
+# 1 - fpr password
+# role - ACCOUNTADMIN
+# warehouse - COMPUTE_WH
+# database - TPCDS
+# schema - RAW
+# threads - 1
+
+mv /home/ubuntu/.dbt/profiles.yml .
+dbt debug --project-dir ./dbt_tpcds
+dbt debug --config-dir --project-dir ./dbt_tpcds
+
+```
+* Edit [dbt_project.yml](../dbt_tpcds/dbt_project.yml)
+    * Delete the config for the `example` folder at the bottom
+    * Write the config for the new models as follows
+    ```yml
+    models:
+        dbt_tpcds:
+            # Config indicated by + and applies to all files under models/example/
+            staging:
+                +materialized: view
+                +schema: RAW
+            intermediate:
+                +materialized: ephemeral
+                +schema: INTERMEDIATE
+            marts:
+                +materialized: table
+                +schema: ANALYTICS
+                +transient: false # to stop dbt from making transient tables in snowflake by default
+    ``` 
+* Create [get_custom_schema.sql](../dbt_tpcds/macros/get_custom_schema.sql) to customize schema name generation in dbt 
+* Create folders under models
+    * staging   
+        * _tpcds__sources.yml
+        * _tpcds__models.yml
+        * stg_tpcds__customer.sql
+        * stg_tpcds__customer_address.sql
+        * stg_tpcds__customer_demographics.sql
+        * stg_tpcds__household_demographics.sql
+        * stg_tpcds__income_band.sql
+        * stg_tpcds__catalog_sales.sql
+        * stg_tpcds__web_sales.sql
+        * stg_tpcds__inventory.sql
+    * intermediate
+        * _int__models.yml
+        * _int_fact_daily_agg_sales_tmp.sql
+        * _int_fact_daily_agg_sales.sql
+        * _int_fact_weekly_sales_inventory_tmp.sql
+    * marts
+        * _marts__models.sql
+        * dim_customer.sql
+        * dim_calendar.sql
+        * fact_weekly_sales_inventory.sql
+    * snapshots
+        * intermediate
+            * _int__customer_snapshot.sql
 ---
 
 ###### i) **Schemas**
