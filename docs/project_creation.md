@@ -359,7 +359,7 @@ RAW → INTERMEDIATE → ANALYTICS
 * Schema references:
 
   * [Tables.xlsx](./Tables.xlsx)
-  * [EDA & Background PDF](./eda_and_data_description.pdf)
+  * [EDA & Background PDF](./eda_and_data_description_wk7_plan.pdf)
 
 📊 ERDs of source schema:
 
