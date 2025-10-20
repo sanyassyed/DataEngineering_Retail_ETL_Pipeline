@@ -399,7 +399,15 @@ Check:
 
   * Sales = by item, customer, date
   * Inventory = by item, warehouse, week
-* Business requirement: inventory on hand per item, per warehouse, per week.
+* Business requirement: inventory on hand per item, per warehouse, per week. [Source](./eda_and_data_description_wk7_plan.pdf)
+   * Need to build a new fact table in the data model; in the fact table, these metrics are required:
+      * `sum_qty_wk`: the sum sales_quantity of this week
+      * `sum_amt_wk`: the sum sales_amount of this week
+      * `sum_profit_wk`: the sum net_profit of this week
+      * `avg_qty_dy`: the average daily sales_quantity of this week (= sum_qty_wk/7)
+      * `inv_on_hand_qty_wk`: the item’s inventory on hand at the end of each week in all warehouses (=The inventory on hand of this weekend)
+      * `wks_sply`: Weeks of supply, an estimate metric to see how many weeks the inventory can supply the sales (inv_on_hand_qty_wk/sum_qty_wk)
+      * `low_stock_flg_wk`: Low stock weekly flag. During the week, if there is a single day, if [(avg_qty_dy > 0 && ((avg_qty_dy) > (inventory_on_hand_qty_wk)), then this week, the flag is True
 
 ---
 
