@@ -507,7 +507,7 @@ flowchart LR
 
 ---
 
-#####  Option 1) In dbt
+#####  Option 2) In dbt
 * dbt project [here](../dbt_tpcds)
 
 ---
