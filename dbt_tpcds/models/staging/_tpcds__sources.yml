@@ -1,0 +1,14 @@
+version: 2
+sources:
+  - name: tpcds
+    database: TPCDS
+    schema: RAW     # <— tell dbt to look in schema 'LAND', not 'stg' don't use this if the schema name is also stg
+    tables:
+      - name: customer
+      - name: customer_address
+      - name: customer_demographics
+      - name: household_demographics
+      - name: income_band
+      - name: catalog_sales
+      - name: web_sales
+      - name: inventory

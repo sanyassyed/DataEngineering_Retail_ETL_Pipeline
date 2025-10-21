@@ -33,12 +33,17 @@ models:
   dbt_tpcds:
     # Config indicated by + and applies to all files under models/example/
     staging:
-      +materialized: view
       +schema: RAW
+      +materialized: view
     intermediate:
-      +materialized: ephemeral
       +schema: INTERMEDIATE
-    marts:
-      +materialized: table
-      +schema: ANALYTICS
+      +materialized: incremental
       +transient: false # to stop dbt from making transient tables in snowflake by default
+    analytics:
+      +schema: ANALYTICS
+      +materialized: table
+      +transient: false # to stop dbt from making transient tables in snowflake by default
+
+snapshots:
+  dbt_tpcds:
+    +target_scheme: SNAPSHOTS

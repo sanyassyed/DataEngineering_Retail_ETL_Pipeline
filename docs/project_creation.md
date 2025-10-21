@@ -535,22 +535,8 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
 ```
 * Edit [dbt_project.yml](../dbt_tpcds/dbt_project.yml)
     * Delete the config for the `example` folder at the bottom
-    * Write the config for the new models as follows
-    ```yml
-    models:
-        dbt_tpcds:
-            # Config indicated by + and applies to all files under models/example/
-            staging:
-                +materialized: view
-                +schema: RAW
-            intermediate:
-                +materialized: ephemeral
-                +schema: INTERMEDIATE
-            marts:
-                +materialized: table
-                +schema: ANALYTICS
-                +transient: false # to stop dbt from making transient tables in snowflake by default
-    ``` 
+    * Write the config for the `models` and `snapshots` as follows
+* Create [packages.yml](../dbt_tpcds/packages.yml) to include `dbt_utils` 
 * Create [get_custom_schema.sql](../dbt_tpcds/macros/get_custom_schema.sql) to customize schema name generation in dbt 
 * Create folders under models
     * staging   
