@@ -1,8 +1,20 @@
 {{ config(
     materialized='incremental',
-    unique_key=['warehouse_sk', 'item_sk', 'date_sk'],
-    incremental_strategy='merge'
+    unique_key=['warehouse_sk', 'item_sk', 'calendar_dt'],
+    incremental_strategy='delete+insert'
 ) }}
+
+{% if is_incremental() %}
+
+  {% set MAX_CAL_DATE_query %}
+    select ifnull(max(calendar_dt), '1900-01-01') from {{this}} as MAX_CAL_DT
+  {% endset %}
+
+  {% if execute %}
+    {% set MAX_CAL_DT = run_query(MAX_CAL_DATE_query).columns[0][0] or '1900-01-01' %}
+  {% endif %}
+
+{% endif %}
 
 -- 1) Aggregate daily sales -> weekly
 with weekly_sales as (
@@ -12,6 +24,7 @@ with weekly_sales as (
         year_number,
         week_of_year,
         MIN(date_sk) as date_sk,
+        MIN(calendar_dt) as calendar_dt,
         sum(coalesce(daily_quantity, 0))   as weekly_quantity,
         sum(coalesce(daily_sales_amt, 0))  as weekly_sales_amt,
         sum(coalesce(daily_net_profit, 0)) as weekly_net_profit,
@@ -25,13 +38,15 @@ weekly_inventory as (
     select
         i.inv_warehouse_sk as warehouse_sk,
         i.inv_item_sk      as item_sk,
-        dc.year_number,
-        dc.week_of_year,
+        d.year_number,
+        d.week_of_year,
         sum(coalesce(i.inv_quantity_on_hand, 0)) as sum_weekly_inv_qty,
         avg(coalesce(i.inv_quantity_on_hand, 0)) as avg_daily_inv_qty
     from {{ ref('stg_tpcds__inventory') }} i
-    join {{ ref('dim_calendar') }} dc
-      on i.inv_date_sk = dc.date_natural_key
+    JOIN {{ ref('int__date_bridge')}} b 
+    ON i.inv_date_sk = b.d_date_sk 
+    join {{ ref('dim_calendar') }} d
+      on d.calendar_dt = b.cal_dt
     group by 1,2,3,4
 ),
 
@@ -40,7 +55,8 @@ week_reference_date as (
     select
         year_number,
         week_of_year,
-        min(date_sk) as week_start_date_sk
+        min(date_sk) as week_start_date_sk,
+        min(calendar_dt) as week_start_calendar_dt
     from {{ ref('dim_calendar') }}
     where day_of_week_number = 0
     group by 1,2
@@ -54,7 +70,7 @@ sales_inv_union as (
         coalesce(ws.year_number, iv.year_number)   as year_number,
         coalesce(ws.week_of_year, iv.week_of_year) as week_of_year,
         wr.week_start_date_sk                      as date_sk,
-
+        wr.week_start_calendar_dt                  as calendar_dt,
         coalesce(ws.weekly_quantity, 0)       as weekly_quantity,
         coalesce(ws.weekly_sales_amt, 0)      as weekly_sales_amt,
         coalesce(ws.weekly_net_profit, 0)     as weekly_net_profit,
@@ -70,6 +86,9 @@ sales_inv_union as (
     left join week_reference_date wr
       on coalesce(ws.year_number, iv.year_number) = wr.year_number
      and coalesce(ws.week_of_year, iv.week_of_year) = wr.week_of_year
+    where coalesce(ws.warehouse_sk, iv.warehouse_sk) is not null -- to make sure warehouse_sk passes not_null test
+      and coalesce(ws.item_sk, iv.item_sk) is not null
+      and wr.week_start_calendar_dt is not null
 )
 
 -- 5) Final aggregation: single row per key
@@ -77,6 +96,7 @@ select
     warehouse_sk,
     item_sk,
     date_sk,
+    calendar_dt,
     year_number,
     week_of_year,
     sum(weekly_quantity)       as sum_weekly_quantity,
@@ -101,9 +121,16 @@ select
     end as low_stock_flag_for_week
 
 from sales_inv_union
+where warehouse_sk is not null
+  and item_sk is not null
+  and calendar_dt is not null
+    {% if is_incremental() %}
+        and calendar_dt >= '{{ MAX_CAL_DT }}'
+    {% endif %}
 group by
     warehouse_sk,
     item_sk,
     date_sk,
+    calendar_dt,
     year_number,
     week_of_year

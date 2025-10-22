@@ -39,7 +39,7 @@ models:
       +schema: INTERMEDIATE
       +materialized: incremental
       +transient: false # to stop dbt from making transient tables in snowflake by default
-    analytics:
+    mart:
       +schema: ANALYTICS
       +materialized: table
       +transient: false # to stop dbt from making transient tables in snowflake by default

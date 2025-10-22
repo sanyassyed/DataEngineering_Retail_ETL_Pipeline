@@ -12,7 +12,10 @@ models:
   - name: stg_tpcds__date_dim
     description: "Staged date dimension from TPC-DS source"
     columns:
-      - name: date_sk
+      - name: d_date_sk
+        tests:
+           - unique
+           - not_null
 
   - name: stg_tpcds__catalog_sales
     description: "Staged catalog sales data"
@@ -21,7 +24,7 @@ models:
         tests:
           - relationships:
               to: ref('stg_tpcds__date_dim')
-              field: date_sk
+              field: d_date_sk
 
   - name: stg_tpcds__web_sales
     description: "Staged web sales data"
@@ -30,7 +33,7 @@ models:
         tests:
           - relationships:
               to: ref('stg_tpcds__date_dim')
-              field: date_sk
+              field: d_date_sk
 
   - name: stg_tpcds__inventory
     description: "Staged inventory data"
@@ -39,4 +42,4 @@ models:
         tests:
           - relationships:
               to: ref('stg_tpcds__date_dim')
-              field: date_sk
+              field: d_date_sk

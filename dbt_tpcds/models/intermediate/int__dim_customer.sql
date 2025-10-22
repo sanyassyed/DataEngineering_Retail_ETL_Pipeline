@@ -55,4 +55,4 @@ from customer_snap cs
 left join customer_address ca on cs.c_current_addr_sk = ca.ca_address_sk
 left join customer_demographics cd on cs.c_current_cdemo_sk = cd.cd_demo_sk
 left join household_demographics hd on cd.cd_demo_sk = hd.hd_demo_sk
-left join income_band ib on cd.cd_income_band_sk = ib.ib_income_band_sk
+left join income_band ib on hd.hd_income_band_sk = ib.ib_income_band_sk

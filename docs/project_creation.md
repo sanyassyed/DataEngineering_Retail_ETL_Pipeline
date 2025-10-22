@@ -518,6 +518,10 @@ flowchart LR
 #####  Option 2) In dbt
 * dbt project [here](../dbt_tpcds)
 * Create the `dbt_tpcds` project as follows: [reference notes](https://github.com/sanyassyed/DataEngineering_Walmart_ETL_Using_Dbt/tree/main)
+* Create the `ANALYTICS` Schema in snowflake
+```sql
+CREATE SCHEMA IF NOT EXISTS TPCDS.ANALYTICS;
+```
 
 ``` bash
 conda create --prefix /home/ubuntu/DataEngineering_Retail_ETL_Pipeline/.venv python=3.12 pip -y
@@ -562,6 +566,7 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
     * snapshots
         * intermediate
             * _int_snapshot__dim_customer.yml 15
+            * int__date_bridge.sql 2.5
             * int_snapshot__dim_customer.sql 8
     * macros
         * generate_calendar.sql 2
@@ -575,6 +580,13 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
         * dim_customer.sql 10
         * dim_calendar.sql 3
         * fact_weekly_sales.sql 13
+* Design decisions:
+    * Added an `int__date_bridge` table as the `d_date_sk` in the source `date_dim` table has the same `cal_dt ` for many `d_date_sk`. And in the `dim_calendar` table `date_sk` is the surrogate key which has to be unique. Hence we join the `dim_date` table with `int__date_bridge` table on `calendar_dt` and `cat_dt` to get the corresponding `d_date_sk`
+    * Made sure all the primary keys are unique by including them in the tests
+    * To check in detail why the test failed look into the `Moniter` tab in Snowflake
+    * We are making sure the weekly inventory sales capture both of the following:
+        * In a week the sales data even if inventory for that item is empty
+        * In a week the inventory data for an item even if it has zero sales
 * Run the following codes
 ```bash
 conda activate ./.venv/

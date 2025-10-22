@@ -1,4 +1,2 @@
-SELECT
-     cal_dt,
-     d_date_sk 
+SELECT * 
 FROM {{ source('tpcds', 'date_dim') }}

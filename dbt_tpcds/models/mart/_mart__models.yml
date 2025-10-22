@@ -4,7 +4,11 @@ models:
   - name: dim_calendar
     description: "Calendar dimension generated using macro for all reporting needs"
     columns:
-      - name: date_natural_key
+      - name: date_sk
+        tests:
+          - unique
+          - not_null
+      - name: calendar_dt
         tests:
           - unique
           - not_null

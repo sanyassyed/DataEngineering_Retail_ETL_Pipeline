@@ -10,8 +10,7 @@ with date_spine as (
 )
 
 select
-    date_day as cal_dt,
-    cast(to_char(date_day, 'YYYYMMDD') as integer) as date_sk,
+    date_day as calendar_dt,
     year(date_day) as year_number,
     month(date_day) as month_number,
     to_char(date_day, 'FMMonth') as month_name,
