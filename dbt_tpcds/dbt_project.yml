@@ -47,3 +47,9 @@ models:
 snapshots:
   dbt_tpcds:
     +target_scheme: SNAPSHOTS
+
+vars:
+  calendar_start_date: '1990-01-01'
+  calendar_end_date: '2030-12-31'
+# dbt run -m dim_calendar --vars '{calendar_start_date: "2020-01-01", calendar_end_date: "2030-12-31"}'
+

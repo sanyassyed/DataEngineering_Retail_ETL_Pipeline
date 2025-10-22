@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: int__dim_customer
+    description: "Integrated dimension combining customer snapshot and related attributes"
+    columns:
+      - name: customer_natural_key
+        tests:
+          - unique
+          - not_null
+
+  - name: int__fact_daily_sales
+    description: "Aggregated daily sales combining catalog and web sales"
+    columns:
+      - name: date_sk
+        tests:
+          - relationships:
+              to: ref('dim_calendar')
+              field: date_sk
+
+  - name: int__fact_weekly_sales_inventory
+    description: >
+      Fact table capturing weekly sales and inventory metrics per warehouse and item.
+      Aggregates daily sales and inventory to weekly level, calculates weeks of supply,
+      and flags low stock items. Handles cases with inventory but no sales and vice versa.
+    columns:
+      - name: warehouse_sk
+        description: Surrogate key of the warehouse.
+      - name: item_sk
+        description: Surrogate key of the item.
+      - name: date_sk
+        description: Week start date surrogate key (Sunday) from dim_calendar.
+      - name: year_number
+        description: Year number corresponding to the week.
+      - name: week_of_year
+        description: Week number of the year.
+      - name: sum_weekly_quantity
+        description: Total units sold in the week.
+      - name: sum_weekly_sales_amt
+        description: Total sales amount in the week.
+      - name: sum_weekly_net_profit
+        description: Total net profit in the week.
+      - name: avg_qty_per_day
+        description: Average daily quantity sold in the week.
+      - name: sum_weekly_inv_qty
+        description: Total on-hand inventory quantity for the week.
+      - name: avg_daily_inv_qty
+        description: Average daily inventory quantity for the week.
+      - name: wks_supply
+        description: >
+          Weeks of supply: total inventory divided by total weekly quantity sold.
+          NULL if no sales occurred in the week.
+      - name: low_stock_flag_for_week
+        description: >
+          Boolean flag indicating low stock. True if weeks of supply is less than 1,
+          false if no sales occurred or sufficient inventory is available.

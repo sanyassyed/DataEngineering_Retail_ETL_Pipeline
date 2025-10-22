@@ -1,0 +1,10 @@
+version: 2
+
+snapshots:
+  - name: int_snapshot__dim_customer
+    description: "Snapshot of customer dimension to track SCD Type 2 changes"
+    columns:
+      - name: c_customer_sk
+        tests:
+          - unique
+          - not_null

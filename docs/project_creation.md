@@ -548,29 +548,44 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
 * Create [get_custom_schema.sql](../dbt_tpcds/macros/get_custom_schema.sql) to customize schema name generation in dbt 
 * Create folders under models
     * staging   
-        * _tpcds__sources.yml
-        * _tpcds__models.yml
-        * stg_tpcds__customer.sql
-        * stg_tpcds__customer_address.sql
-        * stg_tpcds__customer_demographics.sql
-        * stg_tpcds__household_demographics.sql
-        * stg_tpcds__income_band.sql
-        * stg_tpcds__catalog_sales.sql
-        * stg_tpcds__web_sales.sql
-        * stg_tpcds__inventory.sql
-    * intermediate
-        * _int__models.yml
-        * _int_fact_daily_agg_sales_tmp.sql
-        * _int_fact_daily_agg_sales.sql
-        * _int_fact_weekly_sales_inventory_tmp.sql
-    * marts
-        * _marts__models.sql
-        * dim_customer.sql
-        * dim_calendar.sql
-        * fact_weekly_sales_inventory.sql
+        * _tpcds__sources.yml 0
+        * _tpcds__models.yml 14
+        * stg_tpcds__date_dim.sql 1
+        * stg_tpcds__customer.sql 4
+        * ~~stg_tpcds__customer_address.sql~~ # directly use the source function
+        * ~~stg_tpcds__customer_demographics.sql~~ # directly use the source function
+        * ~~stg_tpcds__household_demographics.sql~~ # directly use the source function
+        * ~~stg_tpcds__income_band.sql~~ # directly use the source function
+        * stg_tpcds__catalog_sales.sql 5
+        * stg_tpcds__web_sales.sql 6
+        * stg_tpcds__inventory.sql 7
     * snapshots
         * intermediate
-            * _int__customer_snapshot.sql
+            * _int_snapshot__dim_customer.yml 15
+            * int_snapshot__dim_customer.sql 8
+    * macros
+        * generate_calendar.sql 2
+    * intermediate
+        * int__dim_customer.sql 9
+        * int__fact_daily_sales.sql 11
+        * int__fact_weekly_sales_inventory.sql 12
+        * _int__models.yml 16
+    * marts
+        * _marts__models.yml 17
+        * dim_customer.sql 10
+        * dim_calendar.sql 3
+        * fact_weekly_sales.sql 13
+* Run the following codes
+```bash
+conda activate ./.venv/
+dbt debug --project-dir ./dbt_tpcds/
+dbt deps --project-dir ./dbt_tpcds/
+dbt run --models staging.stg_tpcds__customer
+dbt snapshot --project-dir ./dbt_tpcds/
+dbt compile --project-dir ./dbt_tpcds/
+# dbt run --models staging.*  --project-dir ./dbt_tpcds/
+
+```
 ---
 
 ###### i) **Schemas**
