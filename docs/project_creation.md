@@ -688,7 +688,8 @@ dbt build --project-dir ./dbt_tpcds/
 dbt docs generate --project-dir ./dbt_tpcds/
 dbt docs serve --project-dir ./dbt_tpcds/
 ```
-
+* **Lineage Diagram**
+![Lineage Diagram form dbt docs](./tpcds_dbt_lineage.png)
 ---
 
 ###### i)**Schemas**
