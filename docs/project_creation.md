@@ -647,7 +647,7 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
 
 * **Key Observations**
 
-    * **Bridging tables** (`int__date_bridge`) handle duplicate natural keys in the source `date_dim`.
+    * **Bridging tables** (`int__date_bridge`) handles multiple `d_date_sk` having the same `cal_dt` in the source `date_dim` problem.
     * **Macros** (`generate_calendar`, `get_custom_schema`) are centralized for reusability.
     * **Staging tables** clean and filter raw source data, removing nulls and invalid keys.
     * **Intermediate models** aggregate and consolidate data for the final marts.
@@ -663,13 +663,12 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
     * Primary keys are validated using DBT tests.
     * Test failures can be investigated in Snowflake’s `Monitor` tab.
     * Weekly inventory logic captures:
-
-    * Weeks with sales data even if inventory is missing.
-    * Weeks with inventory data even if sales are zero.
-    * Rows with null `inv_warehouse_sk` in inventory, catalog_sales, or web_sales are filtered at staging.
-    * Weekly sales are consolidated **at the end of the week**, assigned to Sunday (`day_of_week=0`).
-    * Weeks without Sunday are excluded to avoid null `date_sk` and `calendar_dt`.
-    * Only records with non-null `warehouse_sk`, `item_sk`, and `date_sk` are used from sales tables.
+        * Weeks with sales data even if inventory is missing.
+        * ~~Weeks with inventory data even if sales are zero.~~
+        * Rows with null `warehouse_sk` in inventory, catalog_sales, or web_sales are filtered out at staging.
+        * Weekly sales are consolidated **at the end of the week**, assigned to Sunday (`day_of_week=0`).
+        * Weeks without Sunday are excluded to avoid null `date_sk` and `calendar_dt`. This is usually the last week in the loads
+        * Only records with non-null `warehouse_sk`, `item_sk`, and `date_sk` are used from sales tables.
 
 ---
 
@@ -687,6 +686,11 @@ dbt compile --project-dir ./dbt_tpcds/
 dbt build --project-dir ./dbt_tpcds/
 dbt docs generate --project-dir ./dbt_tpcds/
 dbt docs serve --project-dir ./dbt_tpcds/
+
+## incremental loads
+dbt snapshot --project-dir ./dbt_tpcds/
+dbt run --project-dir ./dbt_tpcds/ # if you do not want to run tests
+dbt build --project-dir ./dbt_tpcds/ # if you want to run tests
 ```
 * **Lineage Diagram**
 ![Lineage Diagram form dbt docs](./tpcds_dbt_lineage.png)
@@ -726,6 +730,7 @@ dbt docs serve --project-dir ./dbt_tpcds/
         * (future: `dim_item`, `dim_warehouse`)
 
 ---
+###### TODO: Test if incremental load is working or not
 
 ###### iii)Testing & Scheduling
 

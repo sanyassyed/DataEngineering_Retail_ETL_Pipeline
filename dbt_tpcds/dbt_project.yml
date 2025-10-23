@@ -47,6 +47,7 @@ models:
 snapshots:
   dbt_tpcds:
     +target_scheme: SNAPSHOTS
+    +transient: false
 
 vars:
   calendar_start_date: '1990-01-01'

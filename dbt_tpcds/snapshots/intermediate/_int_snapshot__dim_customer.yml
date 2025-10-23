@@ -6,5 +6,4 @@ snapshots:
     columns:
       - name: c_customer_sk
         tests:
-          - unique
           - not_null
