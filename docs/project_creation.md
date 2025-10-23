@@ -555,12 +555,12 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
 
 * **Project Configuration**
 
-* Edit `dbt_project.yml`:
+    * Edit `dbt_project.yml`:
 
-  * Remove the default `example` folder configuration.
-  * Define configurations for `models` and `snapshots`.
-* Create `packages.yml` to include `dbt_utils`.
-* Create `get_custom_schema.sql` macro to dynamically generate schema names.
+    * Remove the default `example` folder configuration.
+    * Define configurations for `models` and `snapshots`.
+    * Create `packages.yml` to include `dbt_utils`.
+    * Create `get_custom_schema.sql` macro to dynamically generate schema names.
 
 ---
 
@@ -700,15 +700,30 @@ dbt docs serve --project-dir ./dbt_tpcds/
 ---
 
 ###### ii)**Tables**
+* **RAW**
+    * VIEWS (5)
+        * stg_tpcds__date_dim
+        * stg_tpcds__customer
+        * stg_tpcds__catalog_sales
+        * stg_tpcds__web_sales
+        * stg_tpcds__inventory
+* **SNAPSHOTS**
+    * TABLES (1)
+        * int_snapshot__dim_customer
 
 * **INTERMEDIATE**
-
-  * Refer above
+    * TABLES (4)
+        * int__date_bridge
+        * int__dim_customer
+        * int__fact_daily_sales
+        * int__fact_weekly_sales_inventory
 
 * **ANALYTICS**
-
-  * Refer above
-  * (future: `dim_item`, `dim_warehouse`)
+    * TABLES (3)
+        * dim_calendar
+        * dim_customer
+        * fact_weekly_sales
+        * (future: `dim_item`, `dim_warehouse`)
 
 ---
 
@@ -740,7 +755,6 @@ dbt docs serve --project-dir ./dbt_tpcds/
 
 * Use `TIMESTAMP_NTZ` (UTC).
 * Surrogate keys for all future dims & facts.
-* 
 
 ---
 
