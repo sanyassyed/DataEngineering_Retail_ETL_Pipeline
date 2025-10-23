@@ -58,37 +58,34 @@ week_reference_date as (
         min(date_sk) as week_start_date_sk,
         min(calendar_dt) as week_start_calendar_dt
     from {{ ref('dim_calendar') }}
-    where day_of_week_number = 0
+    where day_of_week_number = 0 -- Sunday is the end of the week Monday is 1 and Sunday is 0
     group by 1,2
 ),
 
 -- 4) FULL OUTER JOIN sales & inventory
 sales_inv_union as (
     select
-        coalesce(ws.warehouse_sk, iv.warehouse_sk) as warehouse_sk,
-        coalesce(ws.item_sk, iv.item_sk)           as item_sk,
-        coalesce(ws.year_number, iv.year_number)   as year_number,
-        coalesce(ws.week_of_year, iv.week_of_year) as week_of_year,
-        wr.week_start_date_sk                      as date_sk,
-        wr.week_start_calendar_dt                  as calendar_dt,
-        coalesce(ws.weekly_quantity, 0)       as weekly_quantity,
-        coalesce(ws.weekly_sales_amt, 0)      as weekly_sales_amt,
-        coalesce(ws.weekly_net_profit, 0)     as weekly_net_profit,
-        coalesce(ws.weekly_avg_quantity, 0)   as weekly_avg_quantity,
-        coalesce(iv.sum_weekly_inv_qty, 0)    as sum_weekly_inv_qty,
-        coalesce(iv.avg_daily_inv_qty, 0)     as avg_daily_inv_qty
+      coalesce(ws.warehouse_sk, iv.warehouse_sk) as warehouse_sk,
+      coalesce(ws.item_sk, iv.item_sk)           as item_sk,
+      ws.year_number,
+      ws.week_of_year,
+      wr.week_start_date_sk as date_sk,
+      wr.week_start_calendar_dt as calendar_dt,
+      coalesce(ws.weekly_quantity, 0)       as weekly_quantity,
+      coalesce(ws.weekly_sales_amt, 0)      as weekly_sales_amt,
+      coalesce(ws.weekly_net_profit, 0)     as weekly_net_profit,
+      coalesce(ws.weekly_avg_quantity, 0)   as weekly_avg_quantity,
+      coalesce(iv.sum_weekly_inv_qty, 0)    as sum_weekly_inv_qty,
+      coalesce(iv.avg_daily_inv_qty, 0)     as avg_daily_inv_qty
     from weekly_sales ws
-    full outer join weekly_inventory iv
-      on ws.warehouse_sk = iv.warehouse_sk
+    left join weekly_inventory iv
+     on ws.warehouse_sk = iv.warehouse_sk
      and ws.item_sk      = iv.item_sk
      and ws.year_number  = iv.year_number
      and ws.week_of_year = iv.week_of_year
-    left join week_reference_date wr
-      on coalesce(ws.year_number, iv.year_number) = wr.year_number
-     and coalesce(ws.week_of_year, iv.week_of_year) = wr.week_of_year
-    where coalesce(ws.warehouse_sk, iv.warehouse_sk) is not null -- to make sure warehouse_sk passes not_null test
-      and coalesce(ws.item_sk, iv.item_sk) is not null
-      and wr.week_start_calendar_dt is not null
+    INNER JOIN week_reference_date wr -- <-- inner join ensures only weeks with a Sunday
+      on COALESCE(ws.year_number, iv.year_number) = wr.year_number
+     and COALESCE(ws.week_of_year, iv.week_of_year) = wr.week_of_year
 )
 
 -- 5) Final aggregation: single row per key
@@ -121,9 +118,7 @@ select
     end as low_stock_flag_for_week
 
 from sales_inv_union
-where warehouse_sk is not null
-  and item_sk is not null
-  and calendar_dt is not null
+WHERE 1=1
     {% if is_incremental() %}
         and calendar_dt >= '{{ MAX_CAL_DT }}'
     {% endif %}

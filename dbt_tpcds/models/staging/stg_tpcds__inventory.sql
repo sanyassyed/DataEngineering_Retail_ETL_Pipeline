@@ -4,3 +4,4 @@ SELECT
     INV_QUANTITY_ON_HAND, 
     INV_WAREHOUSE_SK
 FROM {{ source('tpcds', 'inventory') }}
+WHERE INV_WAREHOUSE_SK IS NOT NULL

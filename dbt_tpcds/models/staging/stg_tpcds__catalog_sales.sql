@@ -9,4 +9,5 @@ SELECT
     cs_net_profit as net_profit
 FROM {{ source('tpcds', 'catalog_sales')}}
 WHERE cs_quantity IS NOT NULL and 
-      cs_quantity * cs_sales_price IS NOT NULL
+      cs_quantity * cs_sales_price IS NOT NULL and
+      CS_WAREHOUSE_SK IS NOT NULL

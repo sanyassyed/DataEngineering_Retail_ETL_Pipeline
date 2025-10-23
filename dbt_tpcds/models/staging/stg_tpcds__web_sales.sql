@@ -9,4 +9,5 @@ SELECT
     WS_NET_PROFIT as net_profit
 FROM {{ source('tpcds', 'web_sales')}}
 WHERE ws_quantity IS NOT NULL and 
-      ws_quantity * ws_sales_price IS NOT NULL
+      ws_quantity * ws_sales_price IS NOT NULL and
+      WS_WAREHOUSE_SK IS NOT NULL

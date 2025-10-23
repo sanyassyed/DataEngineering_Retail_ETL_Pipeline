@@ -35,11 +35,17 @@ models:
               to: ref('dim_calendar')
               field: date_sk
       - name: calendar_dt
+        tests:
+          - not_null
         description: "Actual calendar date (DATE type) used for filtering and date operations."
       - name: warehouse_sk
         description: "Surrogate key for warehouse."
+        tests:
+          - not_null
       - name: item_sk
         description: "Surrogate key for item."
+        tests:
+          - not_null
       - name: daily_quantity
         description: "Total quantity sold per day."
       - name: daily_sales_amt
@@ -75,6 +81,8 @@ models:
               field: date_sk
       - name: calendar_dt
         description: "Week start date (DATE type) for the given week."
+        tests:
+          - not_null
       - name: year_number
         description: "Year number corresponding to the week."
       - name: week_of_year

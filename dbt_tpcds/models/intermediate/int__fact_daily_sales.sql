@@ -19,9 +19,25 @@
 -- 1) Combine all sales sources
 with all_sales 
 as (
-    (select * from {{ ref('stg_tpcds__catalog_sales') }})
-    UNION ALL
-    (select * from {{ ref('stg_tpcds__web_sales') }})
+    select 
+        warehouse_sk,
+        item_sk,
+        sold_date_sk,
+        quantity,
+        sales_amt,
+        net_profit
+    from {{ ref('stg_tpcds__catalog_sales') }}
+
+    union all
+
+    select 
+        warehouse_sk,
+        item_sk,
+        sold_date_sk,
+        quantity,
+        sales_amt,
+        net_profit
+    from {{ ref('stg_tpcds__web_sales') }}
 ),
 
 -- 2) Aggregate daily totals
@@ -45,7 +61,7 @@ AS
     SELECT
         a.warehouse_sk,
         a.item_sk,
-        d.date_sk,
+        d.date_sk, --dimension_model_sk
         d.calendar_dt,
         d.year_number,
         d.week_of_year,
@@ -91,7 +107,7 @@ SELECT
     current_date() as UPDATE_TIME
 FROM
     all_sales_aggregated_with_week_no_consolidated
-where 1=1
+where 1=1 
     {% if is_incremental() %}
         and calendar_dt >= '{{ MAX_CAL_DT }}'
     {% endif %}

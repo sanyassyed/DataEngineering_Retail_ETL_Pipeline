@@ -515,79 +515,166 @@ flowchart LR
 
 ---
 
-#####  Option 2) In dbt
-* dbt project [here](../dbt_tpcds)
-* Create the `dbt_tpcds` project as follows: [reference notes](https://github.com/sanyassyed/DataEngineering_Walmart_ETL_Using_Dbt/tree/main)
-* Create the `ANALYTICS` Schema in snowflake
+Here’s a fully upleveled, polished version of your notes while **keeping the folder structure under `models` intact** and making it professional, clear, and readable:
+
+---
+
+##### Option 2) Using DBT
+
+* DBT project: [dbt_tpcds](../dbt_tpcds)
+* Reference for creating the project: [Walmart ETL with DBT](https://github.com/sanyassyed/DataEngineering_Walmart_ETL_Using_Dbt/tree/main)
+* Create the `ANALYTICS` schema in Snowflake:
+
 ```sql
 CREATE SCHEMA IF NOT EXISTS TPCDS.ANALYTICS;
 ```
 
-``` bash
+* **Environment Setup**
+
+```bash
 conda create --prefix /home/ubuntu/DataEngineering_Retail_ETL_Pipeline/.venv python=3.12 pip -y
 conda activate .venv
 python -m pip install --upgrade pip
 pip install dbt-core dbt-snowflake
 dbt --version
 dbt init dbt_tpcds
-# 1 to select snowflake
-# account - *******-******* (snowflake account identifier)
-# user - **** (snowflake login name)
-# 1 - fpr password
-# role - ACCOUNTADMIN
-# warehouse - COMPUTE_WH
-# database - TPCDS
-# schema - RAW
-# threads - 1
+# Select Snowflake (option 1)
+# Account: <your_snowflake_account>
+# User: <your_username>
+# Authentication: password
+# Role: ACCOUNTADMIN
+# Warehouse: COMPUTE_WH
+# Database: TPCDS
+# Schema: RAW
+# Threads: 1
 
 mv /home/ubuntu/.dbt/profiles.yml .
 dbt debug --project-dir ./dbt_tpcds
 dbt debug --config-dir --project-dir ./dbt_tpcds
-
 ```
-* Edit [dbt_project.yml](../dbt_tpcds/dbt_project.yml)
-    * Delete the config for the `example` folder at the bottom
-    * Write the config for the `models` and `snapshots` as follows
-* Create [packages.yml](../dbt_tpcds/packages.yml) to include `dbt_utils` 
-* Create [get_custom_schema.sql](../dbt_tpcds/macros/get_custom_schema.sql) to customize schema name generation in dbt 
-* Create folders under models
-    * staging   
-        * _tpcds__sources.yml 0
-        * _tpcds__models.yml 14
-        * stg_tpcds__date_dim.sql 1
-        * stg_tpcds__customer.sql 4
+
+* **Project Configuration**
+
+* Edit `dbt_project.yml`:
+
+  * Remove the default `example` folder configuration.
+  * Define configurations for `models` and `snapshots`.
+* Create `packages.yml` to include `dbt_utils`.
+* Create `get_custom_schema.sql` macro to dynamically generate schema names.
+
+---
+
+* **DBT Folder Structure**
+
+    * **Others**
+
+        * profiles.yml
+        * dbt_project.yml
+        * packages.yml
+
+    * **Staging**
+
+        * _tpcds__sources.yml
+        * _tpcds__models.yml
+        * stg_tpcds__date_dim.sql
+        * stg_tpcds__customer.sql
         * ~~stg_tpcds__customer_address.sql~~ # directly use the source function
         * ~~stg_tpcds__customer_demographics.sql~~ # directly use the source function
         * ~~stg_tpcds__household_demographics.sql~~ # directly use the source function
         * ~~stg_tpcds__income_band.sql~~ # directly use the source function
-        * stg_tpcds__catalog_sales.sql 5
-        * stg_tpcds__web_sales.sql 6
-        * stg_tpcds__inventory.sql 7
-    * snapshots
+        * stg_tpcds__catalog_sales.sql
+        * stg_tpcds__web_sales.sql
+        * stg_tpcds__inventory.sql
+
+    * **Snapshots**
+
         * intermediate
-            * _int_snapshot__dim_customer.yml 15
-            * int__date_bridge.sql 2.5
-            * int_snapshot__dim_customer.sql 8
-    * macros
-        * generate_calendar.sql 2
-    * intermediate
-        * int__dim_customer.sql 9
-        * int__fact_daily_sales.sql 11
-        * int__fact_weekly_sales_inventory.sql 12
-        * _int__models.yml 16
-    * marts
-        * _marts__models.yml 17
-        * dim_customer.sql 10
-        * dim_calendar.sql 3
-        * fact_weekly_sales.sql 13
-* Design decisions:
-    * Added an `int__date_bridge` table as the `d_date_sk` in the source `date_dim` table has the same `cal_dt ` for many `d_date_sk`. And in the `dim_calendar` table `date_sk` is the surrogate key which has to be unique. Hence we join the `dim_date` table with `int__date_bridge` table on `calendar_dt` and `cat_dt` to get the corresponding `d_date_sk`
-    * Made sure all the primary keys are unique by including them in the tests
-    * To check in detail why the test failed look into the `Moniter` tab in Snowflake
-    * We are making sure the weekly inventory sales capture both of the following:
-        * In a week the sales data even if inventory for that item is empty
-        * In a week the inventory data for an item even if it has zero sales
-* Run the following codes
+
+            * _int_snapshot__dim_customer.yml
+            * int_snapshot__dim_customer.sql
+
+    * **Macros**
+
+        * generate_calendar.sql
+        * get_custom_schema.sql
+    
+    * **Intermediate**
+
+        * int__date_bridge.sql
+        * int__dim_customer.sql
+        * int__fact_daily_sales.sql
+        * int__fact_weekly_sales_inventory.sql
+        * _int__models.yml
+    
+    * **Marts**
+
+        * _marts__models.yml
+        * dim_customer.sql
+        * dim_calendar.sql
+        * fact_weekly_sales.sql
+
+---
+
+* **File Creation Order**
+
+| #  | Folder / Section | File                                 | Notes / Purpose                                            |
+| -- | ---------------- | ------------------------------------ | ---------------------------------------------------------- |
+| 1  | Others           | profiles.yml                         | DBT profile for Snowflake connection                       |
+| 2  | Others           | dbt_project.yml                      | Main DBT project configuration                             |
+| 3  | Macros           | get_custom_schema.sql                | Macro for dynamic schema generation                        |
+| 4  | Staging          | _tpcds__sources.yml                  | Defines TPCDS sources                                      |
+| 5  | Staging          | stg_tpcds__date_dim.sql              | Staging model for `date_dim`                               |
+| 6  | Macros           | generate_calendar.sql                | Macro to generate `dim_calendar`                           |
+| 7  | Intermediate     | int__date_bridge.sql                 | Bridge table connecting source `date_sk` to `dim_calendar` |
+| 8  | Marts            | dim_calendar.sql                     | Final date dimension table                                 |
+| 9  | Staging          | stg_tpcds__customer.sql              | Staging customer table                                     |
+| 10 | Snapshots        | int_snapshot__dim_customer.sql       | Snapshot to track changes in `dim_customer`                |
+| 11 | Intermediate     | int__dim_customer.sql                | Consolidated customer dimension                            |
+| 12 | Marts            | dim_customer.sql                     | Final customer dimension table                             |
+| 13 | Others           | packages.yml                         | DBT packages, e.g., `dbt_utils`                            |
+| 14 | Staging          | stg_tpcds__catalog_sales.sql         | Staging catalog sales table                                |
+| 15 | Staging          | stg_tpcds__web_sales.sql             | Staging web sales table                                    |
+| 16 | Staging          | stg_tpcds__inventory.sql             | Staging inventory table                                    |
+| 17 | Intermediate     | int__fact_daily_sales.sql            | Aggregated daily sales fact table                          |
+| 18 | Intermediate     | int__fact_weekly_sales_inventory.sql | Aggregated weekly sales + inventory fact table             |
+| 19 | Marts            | fact_weekly_sales.sql                | Final weekly sales fact table                              |
+| 20 | Staging          | _tpcds__models.yml                   | DBT tests & configurations for staging                     |
+| 21 | Snapshots        | _int_snapshot__dim_customer.yml      | DBT snapshot test config for `dim_customer`                |
+| 22 | Intermediate     | _int__models.yml                     | DBT test config for intermediate models                    |
+| 23 | Marts            | _marts__models.yml                   | DBT test config for marts models                           |
+
+---
+
+* **Key Observations**
+
+    * **Bridging tables** (`int__date_bridge`) handle duplicate natural keys in the source `date_dim`.
+    * **Macros** (`generate_calendar`, `get_custom_schema`) are centralized for reusability.
+    * **Staging tables** clean and filter raw source data, removing nulls and invalid keys.
+    * **Intermediate models** aggregate and consolidate data for the final marts.
+    * **Marts** contain final dimensional and fact tables for analytics.
+    * **Snapshots** track slowly changing dimensions (SCD), e.g., `dim_customer`.
+    * DBT **tests** enforce uniqueness and not-null constraints across staging, intermediate, and marts.
+
+---
+
+* **Design Decisions**
+
+    * `int__date_bridge` ensures uniqueness when multiple source `date_sk` map to the same `calendar_dt`.
+    * Primary keys are validated using DBT tests.
+    * Test failures can be investigated in Snowflake’s `Monitor` tab.
+    * Weekly inventory logic captures:
+
+    * Weeks with sales data even if inventory is missing.
+    * Weeks with inventory data even if sales are zero.
+    * Rows with null `inv_warehouse_sk` in inventory, catalog_sales, or web_sales are filtered at staging.
+    * Weekly sales are consolidated **at the end of the week**, assigned to Sunday (`day_of_week=0`).
+    * Weeks without Sunday are excluded to avoid null `date_sk` and `calendar_dt`.
+    * Only records with non-null `warehouse_sk`, `item_sk`, and `date_sk` are used from sales tables.
+
+---
+
+* **Running DBT**
+
 ```bash
 conda activate ./.venv/
 dbt debug --project-dir ./dbt_tpcds/
@@ -595,40 +682,50 @@ dbt deps --project-dir ./dbt_tpcds/
 dbt run --models staging.stg_tpcds__customer
 dbt snapshot --project-dir ./dbt_tpcds/
 dbt compile --project-dir ./dbt_tpcds/
-# dbt run --models staging.*  --project-dir ./dbt_tpcds/
-
+# dbt run --models staging.* --project-dir ./dbt_tpcds/
+# dbt build --models dim_calendar.sql --project-dir ./dbt_tpcds/
+dbt build --project-dir ./dbt_tpcds/
+dbt docs generate --project-dir ./dbt_tpcds/
+dbt docs serve --project-dir ./dbt_tpcds/
 ```
----
-
-###### i) **Schemas**
-
-* INTERMEDIATE: staging + hidden tables
-* ANALYTICS: enterprise-facing
 
 ---
 
-###### ii) **Tables**
+###### i)**Schemas**
 
-* INTERMEDIATE:
-
-  * `dim_customer_intermediate` (SCD2)
-  * `fact_daily_sales_aggregated`
-
-* ANALYTICS:
-
-  * `dim_customer`
-  * `fact_weekly_sales_inventory`
-  * (future: `dim_calendar`, `dim_item`, `dim_warehouse`)
+* **INTERMEDIATE:** staging + hidden/bridge tables
+* **ANALYTICS:** enterprise-facing tables
 
 ---
 
-###### iii) Testing & Scheduling
-???
+###### ii)**Tables**
 
-###### iv) **Scripts**
-???
+* **INTERMEDIATE**
+
+  * Refer above
+
+* **ANALYTICS**
+
+  * Refer above
+  * (future: `dim_item`, `dim_warehouse`)
 
 ---
+
+###### iii)Testing & Scheduling
+
+* Use DBT tests for uniqueness and not-null constraints.
+* Scheduling can be handled via Airflow, Prefect, or DBT Cloud triggers.
+
+---
+
+###### iv)Scripts
+
+* Macros: `generate_calendar.sql`, `get_custom_schema.sql`
+* Snapshot scripts: `_int_snapshot__dim_customer.yml`, `int_snapshot__dim_customer.sql`
+* DBT run/build commands as above.
+
+---
+
 
 ### 5. Tools for Documentation
 
