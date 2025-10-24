@@ -666,7 +666,8 @@ dbt debug --config-dir --project-dir ./dbt_tpcds
         * Weeks with sales data even if inventory is missing.
         * ~~Weeks with inventory data even if sales are zero.~~
         * Rows with null `warehouse_sk` in inventory, catalog_sales, or web_sales are filtered out at staging.
-        * Weekly sales are consolidated **at the end of the week**, assigned to Sunday (`day_of_week=0`).
+        * Weekly sales are consolidated **at the end of the week**, assigned to Sunday (`day_of_week=0`) coming at the end of the week.
+        * **NOTE:** In the source the Sunday = 0 is at the beginning of the week 
         * Weeks without Sunday are excluded to avoid null `date_sk` and `calendar_dt`. This is usually the last week in the loads
         * Only records with non-null `warehouse_sk`, `item_sk`, and `date_sk` are used from sales tables.
 
@@ -679,18 +680,25 @@ conda activate ./.venv/
 dbt debug --project-dir ./dbt_tpcds/
 dbt deps --project-dir ./dbt_tpcds/
 dbt run --models staging.stg_tpcds__customer
-dbt snapshot --project-dir ./dbt_tpcds/
 dbt compile --project-dir ./dbt_tpcds/
-# dbt run --models staging.* --project-dir ./dbt_tpcds/
-# dbt build --models dim_calendar.sql --project-dir ./dbt_tpcds/
-dbt build --project-dir ./dbt_tpcds/
 dbt docs generate --project-dir ./dbt_tpcds/
 dbt docs serve --project-dir ./dbt_tpcds/
 
-## incremental loads
+## initial load 
+dbt build --select stg_tpcds__customer.sql --project-dir ./dbt_tpcds/ # because snapshot depends on this model
 dbt snapshot --project-dir ./dbt_tpcds/
-dbt run --project-dir ./dbt_tpcds/ # if you do not want to run tests
+dbt build --project-dir ./dbt_tpcds/
+
+
+## incremental loads- delta load
+dbt build --select stg_tpcds__customer.sql --project-dir ./dbt_tpcds/ # because snapshot depends on this model
+dbt snapshot --project-dir ./dbt_tpcds/
+# dbt run --project-dir ./dbt_tpcds/ # if you do not want to run tests OR
 dbt build --project-dir ./dbt_tpcds/ # if you want to run tests
+
+## OR
+dbt run --select stg_tpcds__customer --project-dir ./dbt_tpcds/ && dbt snapshot --project-dir ./dbt_tpcds/ && dbt build --project-dir ./dbt_tpcds/
+
 ```
 * **Lineage Diagram**
 ![Lineage Diagram form dbt docs](./tpcds_dbt_lineage.png)

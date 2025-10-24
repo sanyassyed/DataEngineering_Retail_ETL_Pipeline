@@ -5,6 +5,8 @@
     strategy='check',
     check_cols=['c_first_name','c_last_name','c_email_address','c_current_addr_sk']
 ) }}
-select * from {{ ref('stg_tpcds__customer') }}
+select 
+* 
+from {{ ref('stg_tpcds__customer') }}
 {% endsnapshot %}
 

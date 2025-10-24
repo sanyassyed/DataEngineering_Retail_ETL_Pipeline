@@ -1,3 +1,5 @@
+{{ config(materialized='view') }}
+
 with customer_snap as (
     select 
         c_customer_sk,
@@ -12,7 +14,8 @@ with customer_snap as (
         c_last_review_date_sk,
         dbt_valid_from as start_date,
         dbt_valid_to as deactivate_date,
-        iff(dbt_valid_to is null, true, false) as active_status
+        iff(dbt_valid_to is null, true, false) as active_status,
+        row_number() over (PARTITION BY c_customer_sk ORDER BY dbt_valid_from DESC) rn
     from {{ ref('int_snapshot__dim_customer') }}
 ),
 
@@ -48,7 +51,7 @@ select
     cd.cd_purchase_estimate as purchase_estimate,
     hd.hd_buy_potential as buy_potential,
     ib.ib_upper_bound as upper_bound,
-    cs.start_date as start_date,
+    cs.start_date as start_date,  --dbt valid from date
     cs.deactivate_date as deactivate_date,
     cs.active_status as active_status
 from customer_snap cs
@@ -56,3 +59,4 @@ left join customer_address ca on cs.c_current_addr_sk = ca.ca_address_sk
 left join customer_demographics cd on cs.c_current_cdemo_sk = cd.cd_demo_sk
 left join household_demographics hd on cd.cd_demo_sk = hd.hd_demo_sk
 left join income_band ib on hd.hd_income_band_sk = ib.ib_income_band_sk
+WHERE cs.rn = 1
