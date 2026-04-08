@@ -33,25 +33,37 @@ This file contains the steps followed to create this project
         * Eg: Create & Upload lambda layer
 * `RDS Postgres`
     * USE: To pull another dataset provided by WeCloudData
-* EC2 Instance with `Airbyte`
-    * CREATE: 
-        * Create t2.xlarge instance with 32GB Memory called `Airbyte` via instructions in `Week 1 Lab EC2 and Linux`
-        * SSH port 22
-        * TCP port 8000
-        * `ssh Airbyte -L 8000:localhost:8000`
-    * INSTALL: 
-        * make
-        ```bash
-        sudo apt update
-        sudo apt install make
-        ```
-        * `docker` & `docker-compose` via 
-            * [Makefile](../setupfiles/Makefile_airbyte) `make install-docker`, `make install-compose` & `make post-install`
-            * Follow instructions in `Week 2 Lab Install Airbyte and Metabase with Docker`
-        * `Airbyte` via abctl
-            * [Makefile](../setupfiles/Makefile_airbyte) `make install-abctl`, `make start-airbyte`, `make stop-airbyte` & `make restart-airbyte`
-            * Get Login details using the command `abctl local credentials` ( first time user set username: s*****een@gmail.com organization:airbyte)
-    * USE: To pull data from RDS into snowflake
+* `Terraform`:
+    * Install Terraform (Version used here:1.14.8) from [here](https://developer.hashicorp.com/terraform/install)
+    ```bash
+    wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+    sudo apt update && sudo apt install terraform
+    terraform -v
+    ```
+* `Airbyte`
+    * Option 1: `Airbyte` via cloud service
+        * Get an airbyte trial account from [here](https://cloud.airbyte.com/)
+        * Create `Workspace`, `Source`, `Destinations` & `Connections` using Terraform
+    * Option 2: `Airbyte` on EC2 instance
+        * CREATE: 
+            * Create t2.xlarge instance with 32GB Memory called `Airbyte` via instructions in `Week 1 Lab EC2 and Linux`
+            * SSH port 22
+            * TCP port 8000
+            * `ssh Airbyte -L 8000:localhost:8000`
+        * INSTALL: 
+            * make
+            ```bash
+            sudo apt update
+            sudo apt install make
+            ```
+            * `docker` & `docker-compose` via 
+                * [Makefile](../setupfiles/Makefile_airbyte) `make install-docker`, `make install-compose` & `make post-install`
+                * Follow instructions in `Week 2 Lab Install Airbyte and Metabase with Docker`
+            * `Airbyte` via abctl
+                * [Makefile](../setupfiles/Makefile_airbyte) `make install-abctl`, `make start-airbyte`, `make stop-airbyte` & `make restart-airbyte`
+                * Get Login details using the command `abctl local credentials` ( first time user set username: s*****een@gmail.com organization:airbyte)
+        * USE: To pull data from RDS into snowflake
 * EC2 Instance with `Metabase`
     * CREATE: Create t2.small instance `Metabase` via instructions in `Week 1 Lab EC2 and Linux`
     * INSTALL: 
@@ -60,6 +72,21 @@ This file contains the steps followed to create this project
             * Follow instructions in `Week 2 Lab Install Airbyte and Metabase with Docker`
         * `Metabase` via docker
     * USE: To visualize the data pulled from snowflake
+
+---
+
+## 📘 Part 0: Terraform for Infrastructure Setup
+* Resources:
+    * [Videos](https://www.youtube.com/watch?v=F7HQG7HNh_M)
+    * [Documentation](https://reference.airbyte.com/reference/patchconnection)
+    * Steps
+        1. Create terraform config file
+        ```bash
+        cd ~/DataEngineering_Retail_ETL_Pipeline
+        mkdir terraform
+        cd ~/DataEngineering_Retail_ETL_Pipeline/terraform
+        touch .terraform-version main.tf variables.tf airbyte.tf snowflake.tf lambda.tf
+        ```
 
 ---
 
