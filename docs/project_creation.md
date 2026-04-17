@@ -87,7 +87,7 @@ This file contains the steps followed to create this project
         cd ~/DataEngineering_Retail_ETL_Pipeline/terraform
         touch .terraform-version main.tf variables.tf airbyte.tf snowflake.tf lambda.tf
         ```
-
+        2. Write code into the files in order [source](https://registry.terraform.io/providers/airbytehq/airbyte/latest/docs/guides/getting_started)
 ---
 
 ## 📘 Part 1 : s3 -> Lambda -> Snowflake - LOADING
