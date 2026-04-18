@@ -35,3 +35,31 @@ variable "RDS_SCHEMA" {
   type = string
   sensitive =  true
 }
+variable "SNOWFLAKE_ACCOUNT_ID_HOST" {
+  type = string
+  sensitive =  true
+}
+variable "SNOWFLAKE_ROLE" {
+  type = string
+  sensitive =  true
+}
+variable "SNOWFLAKE_USERNAME" {
+  type = string
+  sensitive =  true
+}
+variable "SNOWFLAKE_PASSWORD" {
+  type = string
+  sensitive =  true
+}
+variable "SNOWFLAKE_WAREHOUSE" {
+  type = string
+  sensitive =  true
+}
+variable "SNOWFLAKE_DATABASE" {
+  type = string
+  sensitive =  true
+}
+variable "SNOWFLAKE_SCHEMA" {
+  type = string
+  sensitive =  true
+}
