@@ -87,7 +87,31 @@ This file contains the steps followed to create this project
         cd ~/DataEngineering_Retail_ETL_Pipeline/terraform
         touch .terraform-version main.tf variables.tf airbyte.tf snowflake.tf lambda.tf
         ```
-        2. Write code into the files in order [source](https://registry.terraform.io/providers/airbytehq/airbyte/latest/docs/guides/getting_started)
+        1. Create a `Airbyte Application` to get the client id and secret from [here](https://cloud.airbyte.com/workspaces/2bc24ff6-db23-471f-b447-9bcffa88f5bb/user/applications)
+        2. Write code into the files below
+            * main.tf [source code](https://registry.terraform.io/providers/airbytehq/airbyte/latest/docs/guides/getting_started)
+            * variables.tf
+            * .env - add the values to variables
+        3. Run the following commands
+        ```bash
+            # set the environment variables from .env file
+            set -o allexport && source .env && set +o allexport
+            # run terraform commands
+            # to pull the provider plugins eg: airbyte
+            # -chdir tells terraform 
+            terraform -chdir=terraform init
+            terraform -chdir=terraform plan
+        ```
+        4. Add the following files:
+            * airbyte.tf 
+                - [documentation to define source connection](https://registry.terraform.io/providers/airbytehq/airbyte/latest/docs/data-sources/connector_configuration)
+                - [documentation for source](https://registry.terraform.io/providers/airbytehq/airbyte/latest/docs/resources/source)
+                - get the workspace_id the part of the url right after the word `workspaces` in your airbyte account url
+                - define the source
+                - define the destination
+                - define the connector
+            * snowflake.tf
+            * lambda.tf
 ---
 
 ## 📘 Part 1 : s3 -> Lambda -> Snowflake - LOADING

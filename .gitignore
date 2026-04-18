@@ -28,3 +28,12 @@ script/lambda_layers/*
 
 # dbt files
 profiles.yml
+
+
+# terraform files
+#### Terraform
+terraform/.terraform.tfstate.backup
+terraform/.terraform.tfstate
+terraform/.terraform.lock.hcl
+terraform/.terraform/
+terraform/terraform*
